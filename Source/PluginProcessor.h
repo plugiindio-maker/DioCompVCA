@@ -35,8 +35,9 @@ public:
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
 
     juce::AudioProcessorValueTreeState apvts;
-    std::atomic<float> grMeter { 0.0f };   // reduccion de ganancia en dB (positivo)
-    int savedEditorWidth = 520;            // ancho de la ventana (se guarda con el proyecto)
+    std::atomic<float> grMeter  { 0.0f };    // reduccion de ganancia en dB (positivo)
+    std::atomic<float> outMeter { -60.0f };  // nivel de salida (RMS) en dB
+    int savedEditorWidth = 640;              // ancho de la ventana (se guarda con el proyecto)
 
 private:
     float currentMakeupDb() const;
@@ -45,8 +46,8 @@ private:
     std::atomic<float> *pThr = nullptr, *pRatio = nullptr, *pAtk = nullptr, *pRel = nullptr,
                        *pKnee = nullptr, *pMakeup = nullptr, *pMix = nullptr, *pOut = nullptr,
                        *pHpf = nullptr, *pCeil = nullptr, *pAutoRel = nullptr, *pAutoMk = nullptr,
-                       *pRms = nullptr, *pGuard = nullptr, *pBody = nullptr, *pWeight = nullptr,
-                       *pFreq = nullptr;
+                       *pRms = nullptr, *pSafety = nullptr, *pBody = nullptr, *pWeight = nullptr,
+                       *pFreq = nullptr, *pDrive = nullptr, *pPunch = nullptr, *pPresence = nullptr;
 
     double fs = 44100.0;
     int currentPreset = 0;
@@ -56,11 +57,19 @@ private:
     float msState = 0.f;
     float grState = 0.f, grFast = 0.f, grSlow = 0.f;
 
-    // caracter (body / weight)
+    // caracter: body / weight (graves)
     float lp1[2] { 0.f, 0.f }, lp2[2] { 0.f, 0.f };
     float chMsIn = 0.f, chMsOut = 0.f;
 
-    // Peak Guard (limitador con lookahead de ~1.5 ms, sin overshoot)
+    // caracter: drive (saturacion de medios/agudos con anti-aliasing)
+    float dPrevU[2] { 0.f, 0.f }, dPrevLn[2] { 0.f, 0.f }, dcX[2] { 0.f, 0.f }, dcY[2] { 0.f, 0.f };
+    float drvMsIn = 0.f, drvMsOut = 0.f;
+
+    // punch (realce de transitorios) y presence (shelf de agudos)
+    float pkFast = 0.f, pkSlow = 0.f, punchDb = 0.f;
+    float pz1[2] { 0.f, 0.f }, pz2[2] { 0.f, 0.f };
+
+    // seguridad: limitador con lookahead de ~1.5 ms (modo LIMIT) / clipper suave (modo CLIP)
     static constexpr int delaySize = 1024;
     static constexpr int delayMask = delaySize - 1;
     std::vector<float> delayBuf[2];
@@ -70,7 +79,7 @@ private:
     double minSum = 72.0;
     float limGain = 1.f;
 
-    juce::SmoothedValue<float> smMix, smOut, smMakeup, smBody, smWeight;
+    juce::SmoothedValue<float> smMix, smOut, smMakeup, smBody, smWeight, smDrive, smPunch;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (VCACompAudioProcessor)
 };

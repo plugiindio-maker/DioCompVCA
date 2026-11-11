@@ -9,24 +9,42 @@ using FAttr  = juce::AudioParameterFloatAttributes;
 // ------------------------------------------------------------------ presets
 namespace
 {
-    constexpr int kNumPresetValues = 17;
+    constexpr int kNumPresetValues = 20;
     const char* const kPresetIds[kNumPresetValues] = {
         "thr", "ratio", "attack", "release", "knee", "makeup", "mix", "hpf", "out", "ceil",
-        "autorel", "automk", "rms", "guard", "body", "weight", "freq" };
+        "autorel", "automk", "rms", "safety", "body", "weight", "freq", "drive", "punch", "presence" };
 
     struct DioPreset { const char* name; float v[kNumPresetValues]; };
 
-    //                      thr    ratio atk  rel  knee mk  mix  hpf  out ceil   aRel aMk rms grd body wgt freq
+    // safety: 0 = OFF, 1 = LIMIT, 2 = CLIP
+    //                         thr    ratio atk   rel    knee mk  mix   hpf   out ceil    aRel aMk rms sfty body  wgt  freq  drv  pnch pres
     const DioPreset kPresets[] = {
-        { "Default",        { -18.f, 4.f,  10.f, 120.f, 6.f, 0.f, 100.f, 20.f,  0.f, -0.3f, 0.f, 1.f, 0.f, 1.f,  0.f,  0.f, 100.f } },
-        { "Vocal",          { -22.f, 3.5f, 12.f, 140.f, 9.f, 0.f, 100.f, 100.f, 0.f, -0.3f, 1.f, 1.f, 0.f, 1.f, 12.f,  0.f, 120.f } },
-        { "Drums",          { -16.f, 4.f,  25.f,  80.f, 4.f, 0.f,  75.f, 80.f,  0.f, -0.3f, 0.f, 1.f, 0.f, 1.f, 20.f, 10.f,  90.f } },
-        { "Mix Bus Glue",   { -14.f, 2.f,  30.f, 150.f,10.f, 0.f, 100.f, 80.f,  0.f, -0.3f, 1.f, 1.f, 1.f, 1.f,  0.f,  0.f, 100.f } },
-        { "Instruments",    { -18.f, 3.f,  15.f, 150.f, 8.f, 0.f,  85.f, 60.f,  0.f, -0.3f, 0.f, 1.f, 0.f, 1.f, 15.f,  0.f, 120.f } },
-        { "808 Punch",      { -20.f, 5.f,  25.f, 220.f, 4.f, 0.f, 100.f, 30.f,  0.f, -0.5f, 0.f, 1.f, 1.f, 1.f, 40.f, 25.f,  90.f } },
-        { "808 Heavy",      { -22.f, 6.f,  20.f, 280.f, 3.f, 0.f, 100.f, 30.f,  0.f, -0.5f, 0.f, 1.f, 1.f, 1.f, 70.f, 55.f,  80.f } },
+        { "Default",          { -18.f, 4.f,  10.f, 120.f,  6.f, 0.f, 100.f,  20.f, 0.f, -0.3f, 0.f, 1.f, 0.f, 0.f,  0.f,  0.f, 100.f,  0.f,  0.f,  0.f } },
+        { "Vocal",            { -22.f, 3.5f, 12.f, 140.f,  9.f, 0.f, 100.f, 100.f, 0.f, -0.3f, 1.f, 1.f, 0.f, 1.f,  8.f,  0.f, 120.f, 25.f, 15.f, 35.f } },
+        { "Drums",            { -16.f, 4.f,  25.f,  80.f,  4.f, 0.f,  80.f,  80.f, 0.f, -0.3f, 0.f, 1.f, 0.f, 2.f, 20.f, 10.f,  90.f, 35.f, 55.f, 25.f } },
+        { "Mix Bus Glue",     { -14.f, 2.f,  30.f, 150.f, 10.f, 0.f, 100.f,  80.f, 0.f, -0.3f, 1.f, 1.f, 1.f, 1.f,  0.f,  0.f, 100.f, 15.f, 20.f, 15.f } },
+        { "Synths / Keys",    { -18.f, 3.f,  15.f, 150.f,  8.f, 0.f,  85.f,  60.f, 0.f, -0.3f, 0.f, 1.f, 0.f, 0.f, 15.f,  0.f, 120.f, 30.f, 25.f, 30.f } },
+        { "808 Punch",        { -20.f, 5.f,  25.f, 220.f,  4.f, 0.f, 100.f,  30.f, 0.f, -0.5f, 0.f, 1.f, 1.f, 0.f, 40.f, 25.f,  90.f, 20.f, 50.f, 15.f } },
+        { "808 Heavy",        { -22.f, 6.f,  20.f, 280.f,  3.f, 0.f, 100.f,  30.f, 0.f, -0.5f, 0.f, 1.f, 1.f, 0.f, 70.f, 55.f,  80.f, 30.f, 35.f, 10.f } },
+        { "Reese / Moog Bass",{ -20.f, 3.5f, 20.f, 160.f,  6.f, 0.f, 100.f,  40.f, 0.f, -0.5f, 0.f, 1.f, 1.f, 0.f, 25.f, 20.f, 110.f, 35.f, 15.f, 10.f } },
+        { "Trap In Your Face",{ -20.f, 4.f,  30.f, 150.f,  4.f, 0.f,  90.f,  60.f, 0.f, -0.5f, 0.f, 1.f, 0.f, 2.f, 45.f, 30.f,  95.f, 55.f, 60.f, 45.f } },
     };
     constexpr int kNumPresets = (int) (sizeof (kPresets) / sizeof (kPresets[0]));
+
+    inline float lnCosh (float u)
+    {
+        const float a = std::abs (u);
+        return a + std::log1p (std::exp (-2.f * a)) - 0.69314718f;   // ln(cosh(u)) estable
+    }
+
+    inline float softClip (float x, float ceilLin)
+    {
+        const float t = 0.7f * ceilLin, ax = std::abs (x);
+        if (ax <= t) return x;                                       // por debajo del 70% no toca nada (transitorios intactos)
+        const float r = ceilLin - t;
+        const float y = t + r * std::tanh ((ax - t) / r);            // nunca pasa del ceiling
+        return x < 0.f ? -y : y;
+    }
 }
 
 int VCACompAudioProcessor::getNumPrograms() { return kNumPresets; }
@@ -66,11 +84,15 @@ juce::AudioProcessorValueTreeState::ParameterLayout VCACompAudioProcessor::creat
     l.add (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { "autorel", 1 }, "Auto Release", false));
     l.add (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { "automk", 1 },  "Auto Makeup",  true));
     l.add (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { "rms", 1 },     "RMS Detect",   false));
-    l.add (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { "guard", 1 },   "Peak Guard",   true));
+    l.add (std::make_unique<juce::AudioParameterChoice> (juce::ParameterID { "safety", 1 }, "Safety",
+                                                         juce::StringArray { "OFF", "LIMIT", "CLIP" }, 0));
 
     l.add (std::make_unique<FParam> (juce::ParameterID { "body", 1 },   "Body",      NRange (0.f, 100.f, 1.f), 0.f, FAttr().withLabel ("%").withStringFromValueFunction (d0)));
     l.add (std::make_unique<FParam> (juce::ParameterID { "weight", 1 }, "Weight",    NRange (0.f, 100.f, 1.f), 0.f, FAttr().withLabel ("%").withStringFromValueFunction (d0)));
     l.add (std::make_unique<FParam> (juce::ParameterID { "freq", 1 },   "Body Freq", NRange (40.f, 250.f, 1.f, 0.5f), 100.f, FAttr().withLabel ("Hz").withStringFromValueFunction (d0)));
+    l.add (std::make_unique<FParam> (juce::ParameterID { "drive", 1 },  "Drive",     NRange (0.f, 100.f, 1.f), 0.f, FAttr().withLabel ("%").withStringFromValueFunction (d0)));
+    l.add (std::make_unique<FParam> (juce::ParameterID { "punch", 1 },  "Punch",     NRange (0.f, 100.f, 1.f), 0.f, FAttr().withLabel ("%").withStringFromValueFunction (d0)));
+    l.add (std::make_unique<FParam> (juce::ParameterID { "presence", 1 }, "Presence", NRange (0.f, 100.f, 1.f), 0.f, FAttr().withLabel ("%").withStringFromValueFunction (d0)));
     return l;
 }
 
@@ -86,9 +108,10 @@ VCACompAudioProcessor::VCACompAudioProcessor()
     pMix = apvts.getRawParameterValue ("mix");     pOut   = apvts.getRawParameterValue ("out");
     pHpf = apvts.getRawParameterValue ("hpf");     pCeil  = apvts.getRawParameterValue ("ceil");
     pAutoRel = apvts.getRawParameterValue ("autorel"); pAutoMk = apvts.getRawParameterValue ("automk");
-    pRms = apvts.getRawParameterValue ("rms");     pGuard = apvts.getRawParameterValue ("guard");
+    pRms = apvts.getRawParameterValue ("rms");     pSafety = apvts.getRawParameterValue ("safety");
     pBody = apvts.getRawParameterValue ("body");   pWeight = apvts.getRawParameterValue ("weight");
-    pFreq = apvts.getRawParameterValue ("freq");
+    pFreq = apvts.getRawParameterValue ("freq");   pDrive = apvts.getRawParameterValue ("drive");
+    pPunch = apvts.getRawParameterValue ("punch"); pPresence = apvts.getRawParameterValue ("presence");
 }
 
 float VCACompAudioProcessor::currentMakeupDb() const
@@ -101,10 +124,15 @@ float VCACompAudioProcessor::currentMakeupDb() const
 
 void VCACompAudioProcessor::clearState()
 {
-    hpState[0] = hpState[1] = 0.f;
+    for (int c = 0; c < 2; ++c)
+    {
+        hpState[c] = lp1[c] = lp2[c] = 0.f;
+        dPrevU[c] = dPrevLn[c] = dcX[c] = dcY[c] = 0.f;
+        pz1[c] = pz2[c] = 0.f;
+    }
     msState = grState = grFast = grSlow = 0.f;
-    lp1[0] = lp1[1] = lp2[0] = lp2[1] = 0.f;
-    chMsIn = chMsOut = 0.f;
+    chMsIn = chMsOut = drvMsIn = drvMsOut = 0.f;
+    pkFast = pkSlow = punchDb = 0.f;
     tgBuf.assign ((size_t) limLen, 1.f);
     minBuf.assign ((size_t) limLen, 1.f);
     limPos = 0;
@@ -114,6 +142,7 @@ void VCACompAudioProcessor::clearState()
     for (auto& d : delayBuf) d.assign ((size_t) delaySize, 0.f);
     dWrite = 0;
     grMeter.store (0.f);
+    outMeter.store (-60.f);
 }
 
 void VCACompAudioProcessor::reset() { clearState(); }
@@ -131,6 +160,8 @@ void VCACompAudioProcessor::prepareToPlay (double sampleRate, int)
     smMakeup.reset (fs, 0.03); smMakeup.setCurrentAndTargetValue (currentMakeupDb());
     smBody.reset (fs, 0.03);   smBody.setCurrentAndTargetValue (pBody->load() * 0.01f);
     smWeight.reset (fs, 0.03); smWeight.setCurrentAndTargetValue (pWeight->load() * 0.01f);
+    smDrive.reset (fs, 0.03);  smDrive.setCurrentAndTargetValue (pDrive->load() * 0.01f);
+    smPunch.reset (fs, 0.03);  smPunch.setCurrentAndTargetValue (pPunch->load() * 0.01f);
 }
 
 bool VCACompAudioProcessor::isBusesLayoutSupported (const BusesLayout& l) const
@@ -153,7 +184,8 @@ void VCACompAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce
     // --- parametros ---
     const float thr = pThr->load(), ratio = pRatio->load(), knee = pKnee->load();
     const bool autoRel = pAutoRel->load() > 0.5f;
-    const bool useRms = pRms->load() > 0.5f, guard = pGuard->load() > 0.5f;
+    const bool useRms = pRms->load() > 0.5f;
+    const int safety = juce::roundToInt (pSafety->load());     // 0 OFF, 1 LIMIT, 2 CLIP
     const float ceilLin = juce::Decibels::decibelsToGain (pCeil->load());
 
     smMix.setTargetValue (pMix->load() * 0.01f);
@@ -161,6 +193,8 @@ void VCACompAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce
     smMakeup.setTargetValue (currentMakeupDb());
     smBody.setTargetValue (pBody->load() * 0.01f);
     smWeight.setTargetValue (pWeight->load() * 0.01f);
+    smDrive.setTargetValue (pDrive->load() * 0.01f);
+    smPunch.setTargetValue (pPunch->load() * 0.01f);
 
     auto coef = [this] (float ms) { return std::exp (-1.f / (juce::jmax (0.01f, ms) * 0.001f * (float) fs)); };
     const float atkC = coef (pAtk->load()), relC = coef (pRel->load());
@@ -172,8 +206,32 @@ void VCACompAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce
     const float bandFreq = juce::jmin (pFreq->load() * 1.554f, 0.45f * (float) fs);
     const float bandA = 1.f - std::exp (-juce::MathConstants<float>::twoPi * bandFreq / (float) fs);
     const float chC = 1.f - coef (30.f);
+    const float dcR = 1.f - juce::MathConstants<float>::twoPi * 8.f / (float) fs;      // bloqueo de DC a 8 Hz
+    // punch: seguidores rapido/lento y suavizado de la ganancia
+    const float fAtkC = coef (0.3f), fRelC = coef (25.f), sAtkC = coef (15.f), sRelC = coef (150.f);
+    const float pAtkC = coef (0.5f), pRelC = coef (40.f);
+
+    // presence: high-shelf RBJ a 3.5 kHz, hasta +6 dB
+    const float presDb = pPresence->load() * 0.01f * 6.f;
+    float pb0 = 1.f, pb1 = 0.f, pb2 = 0.f, pa1 = 0.f, pa2 = 0.f;
+    if (presDb > 0.01f)
+    {
+        const float f0 = juce::jmin (3500.f, 0.45f * (float) fs);
+        const float A = std::pow (10.f, presDb / 40.f);
+        const float w0 = juce::MathConstants<float>::twoPi * f0 / (float) fs;
+        const float cw = std::cos (w0), sw = std::sin (w0);
+        const float alpha = sw * 0.70710678f;
+        const float sA2 = 2.f * std::sqrt (A) * alpha;
+        const float a0 = (A + 1.f) - (A - 1.f) * cw + sA2;
+        pb0 =  A * ((A + 1.f) + (A - 1.f) * cw + sA2) / a0;
+        pb1 = -2.f * A * ((A - 1.f) + (A + 1.f) * cw) / a0;
+        pb2 =  A * ((A + 1.f) + (A - 1.f) * cw - sA2) / a0;
+        pa1 =  2.f * ((A - 1.f) - (A + 1.f) * cw) / a0;
+        pa2 = ((A + 1.f) - (A - 1.f) * cw - sA2) / a0;
+    }
 
     float maxGr = 0.f;
+    double sumSq = 0.0;
     float* data[2] { buffer.getWritePointer (0), numCh > 1 ? buffer.getWritePointer (1) : nullptr };
 
     for (int i = 0; i < n; ++i)
@@ -232,44 +290,81 @@ void VCACompAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce
         const float outG = smOut.getNextValue();
         const float body = smBody.getNextValue();
         const float gW = 1.f + smWeight.getNextValue();
+        const float drive = smDrive.getNextValue();
+        const float punch = smPunch.getNextValue();
 
         // --- mezcla paralela ---
         float y[2] { 0.f, 0.f };
         for (int c = 0; c < numCh; ++c)
             y[c] = in[c] * (1.f - mix) + in[c] * g * mix;
 
-        // --- caracter: WEIGHT (refuerzo de graves) + BODY (saturacion de graves con nivel compensado) ---
+        // --- caracter: graves = WEIGHT + BODY | medios/agudos = DRIVE (ambos con nivel compensado) ---
         {
-            const float d = 1.f + 3.f * body;
-            float rest[2] { 0.f, 0.f }, bnd[2] { 0.f, 0.f }, sat[2] { 0.f, 0.f };
-            float eIn = 0.f, eOut = 0.f;
+            const float kB = 1.f + 3.f * body;
+            const float dk = 1.f + 4.f * drive, bias = 0.2f * drive;
+            const float biasOff = std::tanh (bias) / dk;
+            float rest[2] { 0.f, 0.f }, bnd[2] { 0.f, 0.f }, satB[2] { 0.f, 0.f }, satD[2] { 0.f, 0.f };
+            float eBi = 0.f, eBo = 0.f, eDi = 0.f, eDo = 0.f;
             for (int c = 0; c < numCh; ++c)
             {
                 lp1[c] += bandA * (y[c] - lp1[c]);
                 lp2[c] += bandA * (lp1[c] - lp2[c]);
                 rest[c] = y[c] - lp2[c];                  // resto = señal - graves (suma perfecta)
                 bnd[c]  = lp2[c] * gW;
-                sat[c]  = std::tanh (d * bnd[c]) / d;
-                eIn  += bnd[c] * bnd[c];
-                eOut += sat[c] * sat[c];
+                satB[c] = std::tanh (kB * bnd[c]) / kB;
+
+                // saturacion con antiderivada (ADAA): casi sin aliasing, sin sobremuestreo ni latencia
+                const float u = dk * rest[c] + bias;
+                const float ln = lnCosh (u);
+                const float du = u - dPrevU[c];
+                float s = std::abs (du) > 1.0e-3f ? (ln - dPrevLn[c]) / (dk * du)
+                                                  : std::tanh (0.5f * (u + dPrevU[c])) / dk;
+                dPrevU[c] = u;  dPrevLn[c] = ln;
+                s -= biasOff;
+                dcY[c] = s - dcX[c] + dcR * dcY[c];       // bloqueador de DC (la asimetria genera armonicos pares)
+                dcX[c] = s;
+                satD[c] = dcY[c];
+
+                eBi += bnd[c] * bnd[c];   eBo += satB[c] * satB[c];
+                eDi += rest[c] * rest[c]; eDo += satD[c] * satD[c];
             }
-            chMsIn  += chC * (eIn  / (float) numCh - chMsIn);
-            chMsOut += chC * (eOut / (float) numCh - chMsOut);
-            const float comp = juce::jlimit (1.f, 4.f, std::sqrt ((chMsIn + 1.0e-12f) / (chMsOut + 1.0e-12f)));
+            const float invCh = 1.f / (float) numCh;
+            chMsIn  += chC * (eBi * invCh - chMsIn);   chMsOut  += chC * (eBo * invCh - chMsOut);
+            drvMsIn += chC * (eDi * invCh - drvMsIn);  drvMsOut += chC * (eDo * invCh - drvMsOut);
+            const float compB = juce::jlimit (1.f, 4.f, std::sqrt ((chMsIn  + 1.0e-12f) / (chMsOut  + 1.0e-12f)));
+            const float compD = juce::jlimit (1.f, 4.f, std::sqrt ((drvMsIn + 1.0e-12f) / (drvMsOut + 1.0e-12f)));
             for (int c = 0; c < numCh; ++c)
-                y[c] = rest[c] + bnd[c] + body * (sat[c] * comp - bnd[c]);
+                y[c] = (bnd[c]  + body  * (satB[c] * compB - bnd[c]))
+                     + (rest[c] + drive * (satD[c] * compD - rest[c]));
         }
 
-        // --- salida ---
+        // --- PUNCH: realza el inicio de cada golpe (transitorios) sin tocar el sostenido ---
+        {
+            const float pk = juce::jmax (std::abs (y[0]), numCh > 1 ? std::abs (y[1]) : 0.f);
+            pkFast = pk > pkFast ? pk + fAtkC * (pkFast - pk) : pk + fRelC * (pkFast - pk);
+            pkSlow = pk > pkSlow ? pk + sAtkC * (pkSlow - pk) : pk + sRelC * (pkSlow - pk);
+            const float diffDb = 20.f * std::log10 ((pkFast + 1.0e-5f) / (pkSlow + 1.0e-5f));
+            const float tgt = punch * 0.55f * juce::jlimit (0.f, 12.f, diffDb - 1.f);   // hasta ~+6.6 dB
+            const float cp = tgt > punchDb ? pAtkC : pRelC;
+            punchDb = cp * punchDb + (1.f - cp) * tgt;
+            const float pg = juce::Decibels::decibelsToGain (punchDb);
+            for (int c = 0; c < numCh; ++c) y[c] *= pg;
+        }
+
+        // --- PRESENCE (shelf de agudos) y volumen de salida ---
         float peak = 0.f;
         for (int c = 0; c < numCh; ++c)
         {
-            y[c] *= outG;
+            const float x = y[c];
+            const float o = pb0 * x + pz1[c];
+            pz1[c] = pb1 * x - pa1 * o + pz2[c];
+            pz2[c] = pb2 * x - pa2 * o;
+            y[c] = o * outG;
             peak = juce::jmax (peak, std::abs (y[c]));
         }
 
-        // --- Peak Guard: limitador con lookahead (min + promedio) ---
-        const float tg = (guard && peak > ceilLin) ? ceilLin / peak : 1.f;
+        // --- SAFETY modo LIMIT: limitador con lookahead (min + promedio) ---
+        const float tg = (safety == 1 && peak > ceilLin) ? ceilLin / peak : 1.f;
         {
             const size_t p = (size_t) limPos;
             if (tgBuf[p] < 1.f) --tgActive;
@@ -291,30 +386,41 @@ void VCACompAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce
         limPos = (limPos + 1) % limLen;
         limGain = avg < limGain ? avg : limRelC * limGain + (1.f - limRelC) * avg;
 
-        // --- retardo (compensa el lookahead) y salida ---
+        // --- retardo fijo (siempre, para que la latencia no cambie) y salida ---
         for (int c = 0; c < numCh; ++c)
         {
             delayBuf[c][(size_t) dWrite] = y[c];
             float o = delayBuf[c][(size_t) ((dWrite - dDelay + delaySize) & delayMask)];
-            if (guard) o = juce::jlimit (-ceilLin, ceilLin, o * limGain);
+            if (safety == 1)      o = juce::jlimit (-ceilLin, ceilLin, o * limGain);
+            else if (safety == 2) o = softClip (o, ceilLin);
             data[c][i] = o;
+            sumSq += (double) o * (double) o;
         }
         dWrite = (dWrite + 1) & delayMask;
     }
     grMeter.store (maxGr);
+    outMeter.store (juce::Decibels::gainToDecibels (std::sqrt ((float) (sumSq / (double) (n * numCh))), -60.f));
 }
 
 juce::AudioProcessorEditor* VCACompAudioProcessor::createEditor() { return new VCACompAudioProcessorEditor (*this); }
 
 void VCACompAudioProcessor::getStateInformation (juce::MemoryBlock& dest)
 {
-    if (auto xml = apvts.copyState().createXml()) copyXmlToBinary (*xml, dest);
+    if (auto xml = apvts.copyState().createXml())
+    {
+        xml->setAttribute ("uiWidth", savedEditorWidth);
+        copyXmlToBinary (*xml, dest);
+    }
 }
 
 void VCACompAudioProcessor::setStateInformation (const void* data, int size)
 {
     if (auto xml = getXmlFromBinary (data, size))
-        if (xml->hasTagName (apvts.state.getType())) apvts.replaceState (juce::ValueTree::fromXml (*xml));
+        if (xml->hasTagName (apvts.state.getType()))
+        {
+            savedEditorWidth = juce::jlimit (368, 1380, xml->getIntAttribute ("uiWidth", 640));
+            apvts.replaceState (juce::ValueTree::fromXml (*xml));
+        }
 }
 
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter() { return new VCACompAudioProcessor(); }
