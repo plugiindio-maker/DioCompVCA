@@ -2,9 +2,9 @@
 #include "PluginEditor.h"
 #include <cmath>
 
-using Param = juce::AudioParameterFloat;
-using Range = juce::NormalisableRange<float>;
-using Attr  = juce::AudioParameterFloatAttributes;
+using FParam = juce::AudioParameterFloat;
+using NRange = juce::NormalisableRange<float>;
+using FAttr  = juce::AudioParameterFloatAttributes;
 
 // ------------------------------------------------------------------ presets
 namespace
@@ -14,10 +14,10 @@ namespace
         "thr", "ratio", "attack", "release", "knee", "makeup", "mix", "hpf", "out", "ceil",
         "autorel", "automk", "rms", "guard", "body", "weight", "freq" };
 
-    struct Preset { const char* name; float v[kNumPresetValues]; };
+    struct DioPreset { const char* name; float v[kNumPresetValues]; };
 
     //                      thr    ratio atk  rel  knee mk  mix  hpf  out ceil   aRel aMk rms grd body wgt freq
-    const Preset kPresets[] = {
+    const DioPreset kPresets[] = {
         { "Default",        { -18.f, 4.f,  10.f, 120.f, 6.f, 0.f, 100.f, 20.f,  0.f, -0.3f, 0.f, 1.f, 0.f, 1.f,  0.f,  0.f, 100.f } },
         { "Vocal",          { -22.f, 3.5f, 12.f, 140.f, 9.f, 0.f, 100.f, 100.f, 0.f, -0.3f, 1.f, 1.f, 0.f, 1.f, 12.f,  0.f, 120.f } },
         { "Drums",          { -16.f, 4.f,  25.f,  80.f, 4.f, 0.f,  75.f, 80.f,  0.f, -0.3f, 0.f, 1.f, 0.f, 1.f, 20.f, 10.f,  90.f } },
@@ -52,25 +52,25 @@ juce::AudioProcessorValueTreeState::ParameterLayout VCACompAudioProcessor::creat
     auto d0 = [] (float v, int) { return juce::String (juce::roundToInt (v)); };
     auto d1 = [] (float v, int) { return juce::String (v, 1); };
 
-    l.add (std::make_unique<Param> (juce::ParameterID { "thr", 1 },    "Threshold", Range (-60.f, 0.f, 0.1f), -18.f, Attr().withLabel ("dB").withStringFromValueFunction (d1)));
-    l.add (std::make_unique<Param> (juce::ParameterID { "ratio", 1 },  "Ratio",     Range (1.f, 20.f, 0.1f, 0.5f), 4.f, Attr().withStringFromValueFunction (d1)));
-    l.add (std::make_unique<Param> (juce::ParameterID { "attack", 1 }, "Attack",    Range (0.1f, 100.f, 0.01f, 0.4f), 10.f, Attr().withLabel ("ms").withStringFromValueFunction (d1)));
-    l.add (std::make_unique<Param> (juce::ParameterID { "release", 1 },"Release",   Range (10.f, 1500.f, 0.1f, 0.4f), 120.f, Attr().withLabel ("ms").withStringFromValueFunction (d0)));
-    l.add (std::make_unique<Param> (juce::ParameterID { "knee", 1 },   "Knee",      Range (0.f, 18.f, 0.1f), 6.f, Attr().withLabel ("dB").withStringFromValueFunction (d1)));
-    l.add (std::make_unique<Param> (juce::ParameterID { "makeup", 1 }, "Makeup",    Range (-12.f, 24.f, 0.1f), 0.f, Attr().withLabel ("dB").withStringFromValueFunction (d1)));
-    l.add (std::make_unique<Param> (juce::ParameterID { "mix", 1 },    "Mix",       Range (0.f, 100.f, 1.f), 100.f, Attr().withLabel ("%").withStringFromValueFunction (d0)));
-    l.add (std::make_unique<Param> (juce::ParameterID { "hpf", 1 },    "SC HPF",    Range (20.f, 500.f, 1.f, 0.4f), 20.f, Attr().withLabel ("Hz").withStringFromValueFunction (d0)));
-    l.add (std::make_unique<Param> (juce::ParameterID { "out", 1 },    "Output",    Range (-12.f, 12.f, 0.1f), 0.f, Attr().withLabel ("dB").withStringFromValueFunction (d1)));
-    l.add (std::make_unique<Param> (juce::ParameterID { "ceil", 1 },   "Ceiling",   Range (-12.f, 0.f, 0.1f), -0.3f, Attr().withLabel ("dB").withStringFromValueFunction (d1)));
+    l.add (std::make_unique<FParam> (juce::ParameterID { "thr", 1 },    "Threshold", NRange (-60.f, 0.f, 0.1f), -18.f, FAttr().withLabel ("dB").withStringFromValueFunction (d1)));
+    l.add (std::make_unique<FParam> (juce::ParameterID { "ratio", 1 },  "Ratio",     NRange (1.f, 20.f, 0.1f, 0.5f), 4.f, FAttr().withStringFromValueFunction (d1)));
+    l.add (std::make_unique<FParam> (juce::ParameterID { "attack", 1 }, "Attack",    NRange (0.1f, 100.f, 0.01f, 0.4f), 10.f, FAttr().withLabel ("ms").withStringFromValueFunction (d1)));
+    l.add (std::make_unique<FParam> (juce::ParameterID { "release", 1 },"Release",   NRange (10.f, 1500.f, 0.1f, 0.4f), 120.f, FAttr().withLabel ("ms").withStringFromValueFunction (d0)));
+    l.add (std::make_unique<FParam> (juce::ParameterID { "knee", 1 },   "Knee",      NRange (0.f, 18.f, 0.1f), 6.f, FAttr().withLabel ("dB").withStringFromValueFunction (d1)));
+    l.add (std::make_unique<FParam> (juce::ParameterID { "makeup", 1 }, "Makeup",    NRange (-12.f, 24.f, 0.1f), 0.f, FAttr().withLabel ("dB").withStringFromValueFunction (d1)));
+    l.add (std::make_unique<FParam> (juce::ParameterID { "mix", 1 },    "Mix",       NRange (0.f, 100.f, 1.f), 100.f, FAttr().withLabel ("%").withStringFromValueFunction (d0)));
+    l.add (std::make_unique<FParam> (juce::ParameterID { "hpf", 1 },    "SC HPF",    NRange (20.f, 500.f, 1.f, 0.4f), 20.f, FAttr().withLabel ("Hz").withStringFromValueFunction (d0)));
+    l.add (std::make_unique<FParam> (juce::ParameterID { "out", 1 },    "Output",    NRange (-12.f, 12.f, 0.1f), 0.f, FAttr().withLabel ("dB").withStringFromValueFunction (d1)));
+    l.add (std::make_unique<FParam> (juce::ParameterID { "ceil", 1 },   "Ceiling",   NRange (-12.f, 0.f, 0.1f), -0.3f, FAttr().withLabel ("dB").withStringFromValueFunction (d1)));
 
     l.add (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { "autorel", 1 }, "Auto Release", false));
     l.add (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { "automk", 1 },  "Auto Makeup",  true));
     l.add (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { "rms", 1 },     "RMS Detect",   false));
     l.add (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { "guard", 1 },   "Peak Guard",   true));
 
-    l.add (std::make_unique<Param> (juce::ParameterID { "body", 1 },   "Body",      Range (0.f, 100.f, 1.f), 0.f, Attr().withLabel ("%").withStringFromValueFunction (d0)));
-    l.add (std::make_unique<Param> (juce::ParameterID { "weight", 1 }, "Weight",    Range (0.f, 100.f, 1.f), 0.f, Attr().withLabel ("%").withStringFromValueFunction (d0)));
-    l.add (std::make_unique<Param> (juce::ParameterID { "freq", 1 },   "Body Freq", Range (40.f, 250.f, 1.f, 0.5f), 100.f, Attr().withLabel ("Hz").withStringFromValueFunction (d0)));
+    l.add (std::make_unique<FParam> (juce::ParameterID { "body", 1 },   "Body",      NRange (0.f, 100.f, 1.f), 0.f, FAttr().withLabel ("%").withStringFromValueFunction (d0)));
+    l.add (std::make_unique<FParam> (juce::ParameterID { "weight", 1 }, "Weight",    NRange (0.f, 100.f, 1.f), 0.f, FAttr().withLabel ("%").withStringFromValueFunction (d0)));
+    l.add (std::make_unique<FParam> (juce::ParameterID { "freq", 1 },   "Body Freq", NRange (40.f, 250.f, 1.f, 0.5f), 100.f, FAttr().withLabel ("Hz").withStringFromValueFunction (d0)));
     return l;
 }
 
