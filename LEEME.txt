@@ -1,0 +1,25 @@
+DioCompVCA - Compresor VCA (VST3)
+
+PRESETS (menu arriba): Default, Vocal, Drums, Mix Bus Glue, Instruments, 808 Punch, 808 Heavy
+
+CARACTER PARA 808 / BAJOS
+ BODY      : satura los graves (agrega armonicos = cuerpo y presencia en bocinas chicas), sin cambiar el volumen.
+ WEIGHT    : refuerza los graves hasta ~+6 dB (peso).
+ BODY FREQ : hasta que frecuencia actuan Body y Weight (40-250 Hz).
+
+BOTONES
+ AUTO MAKEUP : recupera volumen solo. Apagalo para controlarlo a mano con la perilla MAKEUP.
+ AUTO REL    : release que se adapta al material.
+ RMS         : detector mas suave (buses, voces). Apagado = detecta picos.
+ PEAK GUARD  : seguro final contra picos (respeta CEILING). Apagalo si no lo quieres.
+
+COMO OBTENER EL INSTALADOR (GitHub, gratis, sin instalar nada)
+ 1. Crea cuenta en github.com y un repositorio nuevo (New repository).
+ 2. Sube TODO el contenido de esta carpeta (incluida la carpeta oculta .github).
+ 3. Pestana "Actions": espera ~10 min a que termine "Build DioCompVCA" (debe quedar en verde).
+ 4. Abre esa ejecucion y baja a "Artifacts":
+      DioCompVCA-Windows-Instalador  -> DioCompVCA_Setup.exe (doble clic y listo)
+      DioCompVCA-Windows-VST3-zip    -> carpeta .vst3 para copiar a mano
+      DioCompVCA-macOS               -> VST3 y AU para Mac
+
+Instalacion manual: copia DioCompVCA.vst3 a  C:\Program Files\Common Files\VST3
