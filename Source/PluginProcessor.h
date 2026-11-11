@@ -36,6 +36,7 @@ public:
 
     juce::AudioProcessorValueTreeState apvts;
     std::atomic<float> grMeter { 0.0f };   // reduccion de ganancia en dB (positivo)
+    int savedEditorWidth = 520;            // ancho de la ventana (se guarda con el proyecto)
 
 private:
     float currentMakeupDb() const;

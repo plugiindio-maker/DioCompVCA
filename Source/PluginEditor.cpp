@@ -130,8 +130,8 @@ static void drawCrown (juce::Graphics& g, juce::Rectangle<float> r, juce::Colour
 }
 
 // ---------------------------------------------------------------- Editor
-VCACompAudioProcessorEditor::VCACompAudioProcessorEditor (VCACompAudioProcessor& p)
-    : AudioProcessorEditor (&p), proc (p)
+DioPanel::DioPanel (VCACompAudioProcessor& p)
+    : proc (p)
 {
     addKnob (0, "THRESHOLD", "thr", " dB");
     addKnob (1, "RATIO", "ratio", ":1");
@@ -163,7 +163,7 @@ VCACompAudioProcessorEditor::VCACompAudioProcessorEditor (VCACompAudioProcessor&
     startTimerHz (30);
 }
 
-VCACompAudioProcessorEditor::~VCACompAudioProcessorEditor()
+DioPanel::~DioPanel()
 {
     stopTimer();
     presetBox.setLookAndFeel (nullptr);
@@ -171,7 +171,7 @@ VCACompAudioProcessorEditor::~VCACompAudioProcessorEditor()
     for (auto& t : toggles) t.b.setLookAndFeel (nullptr);
 }
 
-void VCACompAudioProcessorEditor::addKnob (int i, const juce::String& name, const juce::String& id, const juce::String& suffix)
+void DioPanel::addKnob (int i, const juce::String& name, const juce::String& id, const juce::String& suffix)
 {
     auto& k = knobs[(size_t) i];
     k.s.setLookAndFeel (&laf);
@@ -190,7 +190,7 @@ void VCACompAudioProcessorEditor::addKnob (int i, const juce::String& name, cons
     k.a = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (proc.apvts, id, k.s);
 }
 
-void VCACompAudioProcessorEditor::addToggle (int i, const juce::String& name, const juce::String& id)
+void DioPanel::addToggle (int i, const juce::String& name, const juce::String& id)
 {
     auto& t = toggles[(size_t) i];
     t.b.setLookAndFeel (&laf);
@@ -199,13 +199,13 @@ void VCACompAudioProcessorEditor::addToggle (int i, const juce::String& name, co
     t.a = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment> (proc.apvts, id, t.b);
 }
 
-void VCACompAudioProcessorEditor::timerCallback()
+void DioPanel::timerCallback()
 {
     meterDisp = juce::jmax (proc.grMeter.load(), meterDisp * 0.88f);
     repaint (meterArea.expanded (30, 30));
 }
 
-void VCACompAudioProcessorEditor::rebuildBackground()
+void DioPanel::rebuildBackground()
 {
     const int w = getWidth(), h = getHeight();
     if (w <= 0 || h <= 0) return;
@@ -230,7 +230,7 @@ void VCACompAudioProcessorEditor::rebuildBackground()
     g.fillAll();
 }
 
-void VCACompAudioProcessorEditor::rebuildTitle()
+void DioPanel::rebuildTitle()
 {
     juce::GlyphArrangement ga;
     ga.addLineOfText (juce::Font (juce::FontOptions (90.f, juce::Font::bold)), "DioCompVCA", 0.f, 0.f);
@@ -247,7 +247,7 @@ void VCACompAudioProcessorEditor::rebuildTitle()
     titlePath.applyTransform (juce::AffineTransform::translation (-b.getX(), -b.getY()).scaled (s).translated (tx, ty));
 }
 
-void VCACompAudioProcessorEditor::paint (juce::Graphics& g)
+void DioPanel::paint (juce::Graphics& g)
 {
     g.drawImageAt (bg, 0, 0);
     const float W = (float) getWidth();
@@ -323,7 +323,7 @@ void VCACompAudioProcessorEditor::paint (juce::Graphics& g)
     g.drawText ("@DioOnTheBeat", 0, 668, getWidth(), 18, juce::Justification::centred);
 }
 
-void VCACompAudioProcessorEditor::resized()
+void DioPanel::resized()
 {
     rebuildBackground();
     rebuildTitle();
@@ -343,4 +343,25 @@ void VCACompAudioProcessorEditor::resized()
         toggles[(size_t) i].b.setBounds (390 + (i % 2) * 124, 510 + (i / 2) * 50, 122, 40);
 
     meterArea = { 690, 214, 34, 300 };
+}
+
+// ---------------------------------------------------------------- Ventana escalable
+VCACompAudioProcessorEditor::VCACompAudioProcessorEditor (VCACompAudioProcessor& p)
+    : AudioProcessorEditor (&p), proc (p), panel (p)
+{
+    addAndMakeVisible (panel);
+    setResizeLimits (380, 348, 1140, 1044);
+    getConstrainer()->setFixedAspectRatio ((double) baseW / (double) baseH);
+    setResizable (true, true);
+
+    const int w = juce::jlimit (380, 1140, p.savedEditorWidth);
+    setSize (w, juce::roundToInt ((float) w * (float) baseH / (float) baseW));
+}
+
+void VCACompAudioProcessorEditor::resized()
+{
+    const float s = (float) getWidth() / (float) baseW;
+    panel.setBounds (0, 0, baseW, baseH);
+    panel.setTransform (juce::AffineTransform::scale (s));
+    proc.savedEditorWidth = getWidth();
 }

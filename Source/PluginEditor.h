@@ -19,11 +19,11 @@ public:
     void drawToggleButton (juce::Graphics&, juce::ToggleButton&, bool highlighted, bool down) override;
 };
 
-class VCACompAudioProcessorEditor : public juce::AudioProcessorEditor, private juce::Timer
+class DioPanel : public juce::Component, private juce::Timer
 {
 public:
-    explicit VCACompAudioProcessorEditor (VCACompAudioProcessor&);
-    ~VCACompAudioProcessorEditor() override;
+    explicit DioPanel (VCACompAudioProcessor&);
+    ~DioPanel() override;
     void paint (juce::Graphics&) override;
     void resized() override;
 
@@ -46,6 +46,21 @@ private:
     juce::Rectangle<int> meterArea;
     juce::Image bg;
     juce::Path titlePath;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DioPanel)
+};
+
+// Ventana del plugin: escalable (arrastra la esquina inferior derecha) y recuerda su tamano
+class VCACompAudioProcessorEditor : public juce::AudioProcessorEditor
+{
+public:
+    explicit VCACompAudioProcessorEditor (VCACompAudioProcessor&);
+    void resized() override;
+
+private:
+    static constexpr int baseW = 760, baseH = 696;
+    VCACompAudioProcessor& proc;
+    DioPanel panel;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (VCACompAudioProcessorEditor)
 };
