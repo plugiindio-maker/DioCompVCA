@@ -4,24 +4,24 @@ using namespace DioStyle;
 // ---------------------------------------------------------------- Look & Feel
 DioLookAndFeel::DioLookAndFeel()
 {
-    setColour (juce::ComboBox::backgroundColourId, juce::Colour (0xff111827));
-    setColour (juce::ComboBox::outlineColourId, neon.withAlpha (0.7f));
+    setColour (juce::ComboBox::backgroundColourId, juce::Colour (0xff120a1f));
+    setColour (juce::ComboBox::outlineColourId, violet.withAlpha (0.6f));
     setColour (juce::ComboBox::textColourId, ice);
-    setColour (juce::ComboBox::arrowColourId, neonHi);
-    setColour (juce::PopupMenu::backgroundColourId, juce::Colour (0xff0d1424));
+    setColour (juce::ComboBox::arrowColourId, violetHi);
+    setColour (juce::PopupMenu::backgroundColourId, juce::Colour (0xff120a1f));
     setColour (juce::PopupMenu::textColourId, ice);
-    setColour (juce::PopupMenu::headerTextColourId, neonHi);
-    setColour (juce::PopupMenu::highlightedBackgroundColourId, neon);
+    setColour (juce::PopupMenu::headerTextColourId, violetHi);
+    setColour (juce::PopupMenu::highlightedBackgroundColourId, violet);
     setColour (juce::PopupMenu::highlightedTextColourId, juce::Colours::white);
-    setColour (juce::TextButton::buttonColourId, juce::Colour (0xff111827));
-    setColour (juce::TextButton::textColourOffId, ice);
-    setColour (juce::TextButton::textColourOnId, ice);
+    setColour (juce::TextButton::buttonColourId, juce::Colour (0xff120a1f));
+    setColour (juce::TextButton::textColourOffId, juce::Colour (0xffb9a3d6));
+    setColour (juce::TextButton::textColourOnId, juce::Colours::white);
 }
 
 void DioLookAndFeel::drawRotarySlider (juce::Graphics& g, int x, int y, int w, int h,
                                        float pos, float startAngle, float endAngle, juce::Slider& slider)
 {
-    juce::Colour acc = neon;
+    juce::Colour acc = violet;
     if (slider.getProperties().contains ("accent"))
         acc = juce::Colour ((juce::uint32) (int) slider.getProperties()["accent"]);
     const juce::Colour accHi = acc.interpolatedWith (juce::Colours::white, 0.4f);
@@ -30,7 +30,7 @@ void DioLookAndFeel::drawRotarySlider (juce::Graphics& g, int x, int y, int w, i
     const float r = juce::jmin (b.getWidth(), b.getHeight()) * 0.5f;
     const auto c = b.getCentre();
     const float angle = startAngle + pos * (endAngle - startAngle);
-    const float arcR = r * 0.84f, capR = r * 0.62f;
+    const float arcR = r * 0.84f, capR = r * 0.64f;
 
     auto pt = [&] (float a, float rad) { return juce::Point<float> (c.x + std::sin (a) * rad, c.y - std::cos (a) * rad); };
 
@@ -38,14 +38,14 @@ void DioLookAndFeel::drawRotarySlider (juce::Graphics& g, int x, int y, int w, i
     for (int i = 0; i <= 10; ++i)
     {
         const float a = startAngle + (float) i / 10.f * (endAngle - startAngle);
-        g.setColour (i % 5 == 0 ? accHi.withAlpha (0.85f) : juce::Colour (0xff35466b));
+        g.setColour (i % 5 == 0 ? accHi.withAlpha (0.9f) : juce::Colour (0xff4a3470));
         g.drawLine (juce::Line<float> (pt (a, r * 0.98f), pt (a, r * 1.08f)), i % 5 == 0 ? 2.f : 1.f);
     }
 
-    // pista y arco de valor con brillo
+    // pista y arco de valor con brillo neon
     juce::Path track;
     track.addCentredArc (c.x, c.y, arcR, arcR, 0.f, startAngle, endAngle, true);
-    g.setColour (juce::Colour (0xff1a2438));
+    g.setColour (juce::Colour (0xff1a1030));
     g.strokePath (track, juce::PathStrokeType (4.f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
 
     if (pos > 0.001f)
@@ -53,65 +53,99 @@ void DioLookAndFeel::drawRotarySlider (juce::Graphics& g, int x, int y, int w, i
         juce::Path val;
         val.addCentredArc (c.x, c.y, arcR, arcR, 0.f, startAngle, angle, true);
         g.setColour (acc.withAlpha (0.22f));
-        g.strokePath (val, juce::PathStrokeType (11.f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+        g.strokePath (val, juce::PathStrokeType (12.f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
         g.setColour (acc.withAlpha (0.5f));
         g.strokePath (val, juce::PathStrokeType (6.f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
         g.setColour (accHi);
         g.strokePath (val, juce::PathStrokeType (3.f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
     }
 
-    // sombra + tapa metalica plateada
-    g.setColour (juce::Colour (0x77000000));
-    g.fillEllipse (c.x - capR - 1.f, c.y - capR + 3.f, (capR + 1.f) * 2.f, (capR + 1.f) * 2.f);
-    g.setGradientFill (juce::ColourGradient (juce::Colour (0xfff7f9ff), c.x - capR * 0.6f, c.y - capR * 0.8f,
-                                             juce::Colour (0xff4a5368), c.x + capR * 0.7f, c.y + capR * 0.9f, false));
+    // sombra + tapa de metal oscuro cepillado
+    g.setColour (juce::Colour (0x99000000));
+    g.fillEllipse (c.x - capR - 1.f, c.y - capR + 4.f, (capR + 1.f) * 2.f, (capR + 1.f) * 2.f);
+    g.setGradientFill (juce::ColourGradient (juce::Colour (0xff6e6882), c.x - capR * 0.35f, c.y - capR * 0.45f,
+                                             juce::Colour (0xff0d0b14), c.x + capR * 0.9f, c.y + capR * 0.9f, true));
     g.fillEllipse (c.x - capR, c.y - capR, capR * 2.f, capR * 2.f);
 
-    // estrias
-    g.setColour (juce::Colour (0x44000000));
-    for (int i = 0; i < 28; ++i)
+    // cepillado radial
+    g.setColour (juce::Colours::white.withAlpha (0.05f));
+    for (int i = 0; i < 40; ++i)
     {
-        const float a = (float) i * juce::MathConstants<float>::twoPi / 28.f;
-        g.drawLine (juce::Line<float> (pt (a, capR * 0.9f), pt (a, capR)), 1.f);
+        const float a = (float) i * juce::MathConstants<float>::twoPi / 40.f;
+        g.drawLine (juce::Line<float> (pt (a, capR * 0.10f), pt (a, capR * 0.97f)), 1.f);
     }
 
-    // plato interior
-    const float innerR = capR * 0.72f;
-    g.setGradientFill (juce::ColourGradient (juce::Colour (0xff98a2b9), c.x, c.y - innerR,
-                                             juce::Colour (0xffe9eeff), c.x, c.y + innerR, false));
-    g.fillEllipse (c.x - innerR, c.y - innerR, innerR * 2.f, innerR * 2.f);
-    g.setColour (juce::Colour (0x88101624));
-    g.drawEllipse (c.x - innerR, c.y - innerR, innerR * 2.f, innerR * 2.f, 1.2f);
-    g.setColour (juce::Colour (0xff0b0f1a));
+    // borde con luz violeta
+    g.setColour (accHi.withAlpha (0.45f));
     g.drawEllipse (c.x - capR, c.y - capR, capR * 2.f, capR * 2.f, 1.6f);
+    g.setColour (juce::Colour (0xff04020a));
+    g.drawEllipse (c.x - capR * 0.97f, c.y - capR * 0.97f, capR * 1.94f, capR * 1.94f, 1.f);
 
-    // puntero con brillo del color de la seccion
-    const auto p1 = pt (angle, capR * 0.20f), p2 = pt (angle, capR * 0.94f);
-    g.setColour (acc.withAlpha (0.35f));
-    g.drawLine (juce::Line<float> (p1, p2), 7.f);
-    g.setColour (accHi);
+    // puntero blanco
+    const auto p1 = pt (angle, capR * 0.30f), p2 = pt (angle, capR * 0.92f);
+    g.setColour (juce::Colours::white.withAlpha (0.25f));
+    g.drawLine (juce::Line<float> (p1, p2), 6.f);
+    g.setColour (juce::Colours::white);
     g.drawLine (juce::Line<float> (p1, p2), 3.f);
 }
 
 void DioLookAndFeel::drawToggleButton (juce::Graphics& g, juce::ToggleButton& bt, bool highlighted, bool)
 {
-    auto r = bt.getLocalBounds().toFloat().reduced (3.f);
     const bool on = bt.getToggleState();
+
+    if (bt.getProperties().contains ("power"))          // boton de encendido redondo
+    {
+        auto r = bt.getLocalBounds().toFloat().reduced (4.f);
+        const auto c = r.getCentre();
+        const float rad = juce::jmin (r.getWidth(), r.getHeight()) * 0.5f;
+        g.setGradientFill (juce::ColourGradient (juce::Colour (0xff2a1745), c.x, r.getY(), juce::Colour (0xff0d0716), c.x, r.getBottom(), false));
+        g.fillEllipse (r);
+        if (on) { g.setColour (violet.withAlpha (0.3f)); g.drawEllipse (r.expanded (3.f), 5.f); }
+        g.setColour (on ? violetHi : juce::Colour (0xff4a3470));
+        g.drawEllipse (r, 2.f);
+        juce::Path p;
+        p.addCentredArc (c.x, c.y, rad * 0.5f, rad * 0.5f, 0.f, 0.6f, juce::MathConstants<float>::twoPi - 0.6f, true);
+        p.startNewSubPath (c.x, c.y - rad * 0.62f);
+        p.lineTo (c.x, c.y - rad * 0.08f);
+        if (on) { g.setColour (violet.withAlpha (0.4f)); g.strokePath (p, juce::PathStrokeType (7.f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded)); }
+        g.setColour (on ? juce::Colours::white : juce::Colour (0xff7d6aa0));
+        g.strokePath (p, juce::PathStrokeType (3.f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+        return;
+    }
+
+    auto r = bt.getLocalBounds().toFloat().reduced (3.f);
     if (on)
     {
-        g.setColour (cyan.withAlpha (0.25f));
+        g.setColour (magenta.withAlpha (0.25f));
         g.fillRoundedRectangle (r.expanded (2.f), 9.f);
-        g.setGradientFill (juce::ColourGradient (cyan.interpolatedWith (neon, 0.3f), r.getX(), r.getY(),
-                                                 neon.darker (0.4f), r.getX(), r.getBottom(), false));
+        g.setGradientFill (juce::ColourGradient (magenta.interpolatedWith (violet, 0.4f), r.getX(), r.getY(),
+                                                 violet.darker (0.5f), r.getX(), r.getBottom(), false));
     }
     else
-        g.setColour (juce::Colour (highlighted ? 0xff1f2840 : 0xff131a2b));
+        g.setColour (juce::Colour (highlighted ? 0xff22143a : 0xff140c24));
     g.fillRoundedRectangle (r, 7.f);
-    g.setColour (on ? cyan : juce::Colour (0xff2b3856));
+    g.setColour (on ? magenta : juce::Colour (0xff3a2560));
     g.drawRoundedRectangle (r, 7.f, 1.3f);
-    g.setColour (on ? juce::Colours::white : juce::Colour (0xff9fb0d0));
+    g.setColour (on ? juce::Colours::white : juce::Colour (0xffb9a3d6));
     g.setFont (juce::Font (juce::FontOptions (12.5f, juce::Font::bold)));
     g.drawText (bt.getButtonText(), bt.getLocalBounds(), juce::Justification::centred);
+}
+
+void DioLookAndFeel::drawButtonBackground (juce::Graphics& g, juce::Button& b, const juce::Colour&, bool highlighted, bool down)
+{
+    auto r = b.getLocalBounds().toFloat().reduced (1.5f);
+    const bool on = b.getToggleState();
+    if (on)
+    {
+        g.setColour (violet.withAlpha (0.28f));
+        g.fillRoundedRectangle (r.expanded (2.f), 9.f);
+        g.setGradientFill (juce::ColourGradient (violet, r.getX(), r.getY(), violet.darker (0.6f), r.getX(), r.getBottom(), false));
+    }
+    else
+        g.setColour (juce::Colour (down ? 0xff2a1745 : highlighted ? 0xff1d1030 : 0xff120a1f));
+    g.fillRoundedRectangle (r, 7.f);
+    g.setColour (on ? violetHi : juce::Colour (0xff3a2560));
+    g.drawRoundedRectangle (r, 7.f, 1.3f);
 }
 
 // ---------------------------------------------------------------- helpers
@@ -150,39 +184,89 @@ static void drawScrew (juce::Graphics& g, float cx, float cy, float r)
     g.drawLine (cx - r * 0.6f, cy + r * 0.3f, cx + r * 0.6f, cy - r * 0.3f, 1.4f);
 }
 
+static void drawLedBar (juce::Graphics& g, juce::Rectangle<float> r, float db, const juce::String& label)
+{
+    g.setColour (violetHi);
+    g.setFont (juce::Font (juce::FontOptions (12.f, juce::Font::bold)));
+    g.drawText (label, r.withHeight (16.f).translated (0.f, -20.f), juce::Justification::centredLeft);
+    g.setColour (ice);
+    g.drawText (db <= -79.f ? juce::String ("-inf dB") : juce::String (db, 1) + " dB",
+                r.withHeight (16.f).translated (0.f, -20.f), juce::Justification::centredRight);
+
+    g.setColour (juce::Colour (0xff0a0614));
+    g.fillRoundedRectangle (r.expanded (3.f), 5.f);
+    const int segs = 40;
+    const float sw = r.getWidth() / (float) segs;
+    const int lit = juce::roundToInt (juce::jlimit (0.f, 1.f, (db + 48.f) / 48.f) * (float) segs);
+    for (int i = 0; i < segs; ++i)
+    {
+        const float t = (float) i / (float) segs;
+        const juce::Colour on = t < 0.70f ? violet : t < 0.90f ? magenta : juce::Colour (0xffff7aa8);
+        g.setColour (i < lit ? on : juce::Colour (0xff1b1130));
+        g.fillRoundedRectangle (r.getX() + (float) i * sw + 1.f, r.getY(), sw - 2.f, r.getHeight(), 1.5f);
+    }
+}
+
 // ---------------------------------------------------------------- Panel
-DioPanel::DioPanel (VCACompAudioProcessor& p)
+DioPanel::DioPanel (DioCompressProcessor& p)
     : proc (p)
 {
-    // fila A: compresor (azul)
-    addKnob (0, "THRESHOLD", "thr", " dB", neon);
-    addKnob (1, "RATIO", "ratio", ":1", neon);
-    addKnob (2, "ATTACK", "attack", " ms", neon);
-    addKnob (3, "RELEASE", "release", " ms", neon);
-    addKnob (4, "KNEE", "knee", " dB", neon);
-    addKnob (5, "SC HPF", "hpf", " Hz", neon);
-    // fila B: nivel (cian)
-    addKnob (6, "MAKEUP", "makeup", " dB", cyan);
-    addKnob (7, "MIX", "mix", " %", cyan);
-    addKnob (8, "OUTPUT", "out", " dB", cyan);
-    addKnob (9, "CEILING", "ceil", " dB", cyan);
-    // fila C: caracter (colores calidos)
-    addKnob (10, "BODY", "body", " %", orange);
-    addKnob (11, "WEIGHT", "weight", " %", orange);
-    addKnob (12, "BODY FREQ", "freq", " Hz", orange);
-    addKnob (13, "DRIVE", "drive", " %", hot);
-    addKnob (14, "PUNCH", "punch", " %", gold);
-    addKnob (15, "PRESENCE", "presence", " %", purple);
+    addKnob (0,  "THRESHOLD", "thr",     " dB", violet);
+    addKnob (1,  "RATIO",     "ratio",   ":1",  violet);
+    addKnob (2,  "ATTACK",    "attack",  " ms", violet);
+    addKnob (3,  "RELEASE",   "release", " ms", violet);
+    addKnob (4,  "KNEE",      "knee",    " dB", violet);
+    addKnob (5,  "SC HPF",    "hpf",     " Hz", violet);
+    addKnob (6,  "CEILING",   "ceil",    " dB", violet);
+    addKnob (7,  "INPUT",     "input",   " dB", violetHi);
+    addKnob (8,  "MAKEUP",    "makeup",  " dB", violetHi);
+    addKnob (9,  "OUTPUT",    "out",     " dB", violetHi);
+    addKnob (10, "DRY / WET", "mix",     " %",  violetHi);
+    addKnob (11, "DRIVE",     "drive",   " %",  magenta);
+    addKnob (12, "COLOR",     "color",   " %",  magenta);
+    addKnob (13, "MIX",       "amix",    " %",  magenta);
 
-    addToggle (0, "AUTO REL", "autorel");
-    addToggle (1, "AUTO MAKEUP", "automk");
-    addToggle (2, "RMS", "rms");
+    // selector de topologia y personalidad VCA
+    const char* topoNames[3] = { "VCA", "OPTICO", "VARI-MU" };
+    const char* modeNames[3] = { "SMOOTH", "PUNCH", "AGGRESSIVE" };
+    for (int i = 0; i < 3; ++i)
+    {
+        topoBtn[(size_t) i].setLookAndFeel (&laf);
+        topoBtn[(size_t) i].setButtonText (topoNames[i]);
+        topoBtn[(size_t) i].setRadioGroupId (101);
+        topoBtn[(size_t) i].setClickingTogglesState (true);
+        topoBtn[(size_t) i].onClick = [this, i] { setChoice ("topology", i); };
+        addAndMakeVisible (topoBtn[(size_t) i]);
+
+        modeBtn[(size_t) i].setLookAndFeel (&laf);
+        modeBtn[(size_t) i].setButtonText (modeNames[i]);
+        modeBtn[(size_t) i].setRadioGroupId (102);
+        modeBtn[(size_t) i].setClickingTogglesState (true);
+        modeBtn[(size_t) i].onClick = [this, i] { setChoice ("vcamode", i); };
+        addAndMakeVisible (modeBtn[(size_t) i]);
+    }
+
+    powerBtn.getProperties().set ("power", true);
+    powerBtn.setLookAndFeel (&laf);
+    powerBtn.onClick = [this] { setBool ("bypass", ! powerBtn.getToggleState()); };
+    addAndMakeVisible (powerBtn);
+
+    autoMkBtn.setLookAndFeel (&laf);
+    autoMkBtn.setButtonText ("AUTO");
+    addAndMakeVisible (autoMkBtn);
+    autoMkAtt = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment> (proc.apvts, "automk", autoMkBtn);
+
+    analogBtn.setLookAndFeel (&laf);
+    analogBtn.setButtonText ("ANALOG ON");
+    addAndMakeVisible (analogBtn);
+    analogAtt = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment> (proc.apvts, "analogon", analogBtn);
 
     safetyBox.setLookAndFeel (&laf);
     safetyBox.addItemList (juce::StringArray { "OFF", "LIMIT", "CLIP" }, 1);
     addAndMakeVisible (safetyBox);
     safetyAtt = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment> (proc.apvts, "safety", safetyBox);
 
+    // presets con flechas
     presetBox.setLookAndFeel (&laf);
     for (int i = 0; i < proc.getNumPrograms(); ++i)
         presetBox.addItem (proc.getProgramName (i), i + 1);
@@ -190,10 +274,39 @@ DioPanel::DioPanel (VCACompAudioProcessor& p)
     presetBox.onChange = [this] { proc.setCurrentProgram (presetBox.getSelectedId() - 1); };
     addAndMakeVisible (presetBox);
 
+    prevBtn.setLookAndFeel (&laf);  prevBtn.setButtonText ("<");
+    nextBtn.setLookAndFeel (&laf);  nextBtn.setButtonText (">");
+    prevBtn.onClick = [this]
+    {
+        const int n = presetBox.getNumItems();
+        const int id = presetBox.getSelectedId();
+        presetBox.setSelectedId (id <= 1 ? n : id - 1);
+    };
+    nextBtn.onClick = [this]
+    {
+        const int n = presetBox.getNumItems();
+        const int id = presetBox.getSelectedId();
+        presetBox.setSelectedId (id >= n ? 1 : id + 1);
+    };
+    addAndMakeVisible (prevBtn);
+    addAndMakeVisible (nextBtn);
+
+    // perfiles de fuente
+    profileBox.setLookAndFeel (&laf);
+    profileBox.addItemList (juce::StringArray { "VOCAL", "KICK", "SNARE", "DRUM BUS", "808 / BASS", "INSTRUMENTAL", "MASTER BUS" }, 1);
+    profileBox.setTextWhenNothingSelected ("SOURCE PROFILE");
+    if (proc.getCurrentProfile() >= 0)
+        profileBox.setSelectedId (proc.getCurrentProfile() + 1, juce::dontSendNotification);
+    profileBox.onChange = [this] { proc.applyProfile (profileBox.getSelectedId() - 1); };
+    addAndMakeVisible (profileBox);
+
     settingsBtn.setLookAndFeel (&laf);
     settingsBtn.setButtonText ("SETTINGS");
     settingsBtn.onClick = [this] { showSettingsMenu(); };
     addAndMakeVisible (settingsBtn);
+
+    uiTopo = getChoice ("topology");
+    applyTopologyUi();
 
     setSize (kW, kH);
     startTimerHz (30);
@@ -202,11 +315,18 @@ DioPanel::DioPanel (VCACompAudioProcessor& p)
 DioPanel::~DioPanel()
 {
     stopTimer();
+    for (auto& b : topoBtn) b.setLookAndFeel (nullptr);
+    for (auto& b : modeBtn) b.setLookAndFeel (nullptr);
+    powerBtn.setLookAndFeel (nullptr);
+    autoMkBtn.setLookAndFeel (nullptr);
+    analogBtn.setLookAndFeel (nullptr);
     safetyBox.setLookAndFeel (nullptr);
     presetBox.setLookAndFeel (nullptr);
+    profileBox.setLookAndFeel (nullptr);
+    prevBtn.setLookAndFeel (nullptr);
+    nextBtn.setLookAndFeel (nullptr);
     settingsBtn.setLookAndFeel (nullptr);
-    for (auto& k : knobs)   k.s.setLookAndFeel (nullptr);
-    for (auto& t : toggles) t.b.setLookAndFeel (nullptr);
+    for (auto& k : knobs) k.s.setLookAndFeel (nullptr);
 }
 
 void DioPanel::addKnob (int i, const juce::String& name, const juce::String& id, const juce::String& suffix, juce::Colour accent)
@@ -222,20 +342,40 @@ void DioPanel::addKnob (int i, const juce::String& name, const juce::String& id,
     k.s.setColour (juce::Slider::textBoxOutlineColourId, juce::Colours::transparentBlack);
     k.l.setText (name, juce::dontSendNotification);
     k.l.setJustificationType (juce::Justification::centred);
-    k.l.setColour (juce::Label::textColourId, accent.interpolatedWith (juce::Colours::white, 0.35f));
-    k.l.setFont (juce::Font (juce::FontOptions (12.f, juce::Font::bold)));
+    k.l.setColour (juce::Label::textColourId, accent.interpolatedWith (juce::Colours::white, 0.45f));
+    k.l.setFont (juce::Font (juce::FontOptions (13.f, juce::Font::bold)));
     addAndMakeVisible (k.s);
     addAndMakeVisible (k.l);
     k.a = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (proc.apvts, id, k.s);
 }
 
-void DioPanel::addToggle (int i, const juce::String& name, const juce::String& id)
+void DioPanel::setChoice (const char* id, int index)
 {
-    auto& t = toggles[(size_t) i];
-    t.b.setLookAndFeel (&laf);
-    t.b.setButtonText (name);
-    addAndMakeVisible (t.b);
-    t.a = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment> (proc.apvts, id, t.b);
+    if (auto* p = proc.apvts.getParameter (id))
+    {
+        p->beginChangeGesture();
+        p->setValueNotifyingHost (p->convertTo0to1 ((float) index));
+        p->endChangeGesture();
+    }
+}
+
+void DioPanel::setBool (const char* id, bool v) { setChoice (id, v ? 1 : 0); }
+
+int DioPanel::getChoice (const char* id) const
+{
+    return juce::roundToInt (proc.apvts.getRawParameterValue (id)->load());
+}
+
+// muestra solo los controles que tienen sentido en la topologia elegida
+void DioPanel::applyTopologyUi()
+{
+    const bool vca = (uiTopo == 0), opto = (uiTopo == 1);
+    knobs[2].s.setVisible (! opto);  knobs[2].l.setVisible (! opto);     // ATTACK: la celda optica es automatica
+    knobs[4].s.setVisible (vca);     knobs[4].l.setVisible (vca);        // KNEE: solo VCA (las otras tienen curva propia)
+    for (auto& b : modeBtn) b.setVisible (vca);                          // SMOOTH / PUNCH / AGGRESSIVE: solo VCA
+    knobs[1].l.setText (uiTopo == 2 ? "MAX RATIO" : opto ? "COMPRESSION" : "RATIO", juce::dontSendNotification);
+    knobs[3].l.setText (opto ? "RECOVERY" : "RELEASE", juce::dontSendNotification);
+    repaint();
 }
 
 void DioPanel::showSettingsMenu()
@@ -256,33 +396,42 @@ void DioPanel::showSettingsMenu()
                      });
 }
 
-void DioPanel::mouseDown (const juce::MouseEvent& e)
-{
-    if (vuHit.contains (e.getPosition()))        // clic en el medidor: alterna GR / OUTPUT (como el CLA-2A)
-    {
-        vuMode = 1 - vuMode;
-        repaint (vuHit);
-    }
-}
-
 void DioPanel::timerCallback()
 {
-    meterDisp = juce::jmax (proc.grMeter.load(), meterDisp * 0.88f);
-    outDisp   = juce::jmax (proc.outMeter.load(), outDisp - 1.5f);
+    grDisp  = juce::jmax (proc.grMeter.load(), grDisp * 0.88f);
+    inDisp  = juce::jmax (proc.inMeter.load(),  inDisp - 1.2f);
+    outDisp = juce::jmax (proc.outMeter.load(), outDisp - 1.2f);
 
-    const float posT = (vuMode == 0) ? 1.f - juce::jlimit (0.f, 1.f, meterDisp / 20.f)
-                                     : juce::jlimit (0.f, 1.f, (outDisp + 20.f) / 23.f);
+    const float posT = 1.f - std::sqrt (juce::jlimit (0.f, 1.f, grDisp / 20.f));
     needlePos += (posT - needlePos) * 0.30f;
 
     phase += 0.10f;
     if (phase > juce::MathConstants<float>::twoPi) phase -= juce::MathConstants<float>::twoPi;
 
-    repaint (vuHit);
-    if ((++tick & 1) == 0)
+    // sincroniza la interfaz con los parametros (presets, automatizacion del DAW)
+    const int topo = getChoice ("topology"), mode = getChoice ("vcamode");
+    if (topo != uiTopo) { uiTopo = topo; applyTopologyUi(); }
+    for (int i = 0; i < 3; ++i)
     {
-        repaint (0, 0, kW, 142);       // coronas y titulo palpitan
-        repaint (plateArea);
+        topoBtn[(size_t) i].setToggleState (i == topo, juce::dontSendNotification);
+        modeBtn[(size_t) i].setToggleState (i == mode, juce::dontSendNotification);
     }
+    powerBtn.setToggleState (getChoice ("bypass") == 0, juce::dontSendNotification);
+
+    const bool an = analogBtn.getToggleState();
+    if (an != analogUiOn)
+    {
+        analogUiOn = an;
+        for (int i = 11; i < 14; ++i)
+        {
+            knobs[(size_t) i].s.setAlpha (an ? 1.f : 0.4f);
+            knobs[(size_t) i].l.setAlpha (an ? 1.f : 0.4f);
+        }
+    }
+
+    repaint (meterArea.expanded (10));
+    repaint (660, 400, 420, 160);                               // medidores de entrada / salida
+    if ((++tick & 1) == 0) repaint (0, 0, kW, 120);             // logo y power palpitan
 }
 
 void DioPanel::rebuildBackground()
@@ -291,35 +440,26 @@ void DioPanel::rebuildBackground()
     if (w <= 0 || h <= 0) return;
     bg = juce::Image (juce::Image::ARGB, w, h, true);
     juce::Graphics g (bg);
-    g.setGradientFill (juce::ColourGradient::vertical (juce::Colour (0xff05070e), 0.f, juce::Colour (0xff0a1126), (float) h));
+    g.setGradientFill (juce::ColourGradient::vertical (juce::Colour (0xff040208), 0.f, juce::Colour (0xff0d0620), (float) h));
     g.fillAll();
 
-    juce::Random rnd (1337);   // humo azul (fijo, siempre igual)
+    juce::Random rnd (4242);   // humo violeta (fijo, siempre igual)
     for (int i = 0; i < 46; ++i)
     {
         const float cx = rnd.nextFloat() * (float) w, cy = rnd.nextFloat() * (float) h;
-        const float rad = 80.f + rnd.nextFloat() * 200.f;
-        const auto c = juce::Colour::fromHSV (0.60f + rnd.nextFloat() * 0.06f, 0.85f, 0.5f + 0.5f * rnd.nextFloat(),
-                                              0.05f + 0.10f * rnd.nextFloat());
+        const float rad = 90.f + rnd.nextFloat() * 220.f;
+        const bool mg = rnd.nextFloat() > 0.7f;
+        const auto c = juce::Colour::fromHSV (mg ? 0.85f : 0.74f + rnd.nextFloat() * 0.04f, 0.85f,
+                                              0.5f + 0.5f * rnd.nextFloat(), 0.05f + 0.09f * rnd.nextFloat());
         g.setGradientFill (juce::ColourGradient (c, cx, cy, c.withAlpha (0.f), cx + rad, cy, true));
         g.fillEllipse (cx - rad, cy - rad, rad * 2.f, rad * 2.f);
     }
-    // destellos calidos (fuego/amber) en las esquinas inferiores: contraste con el azul
-    auto glow = [&] (float cx, float cy, float rad, juce::Colour c)
+    // textura metalica fina en el panel
+    for (int yy = 124; yy < 712; yy += 2)
     {
-        g.setGradientFill (juce::ColourGradient (c, cx, cy, c.withAlpha (0.f), cx + rad, cy, true));
-        g.fillEllipse (cx - rad, cy - rad, rad * 2.f, rad * 2.f);
-    };
-    glow (60.f, (float) h - 40.f, 240.f, orange.withAlpha (0.10f));
-    glow ((float) w - 60.f, (float) h - 20.f, 260.f, purple.withAlpha (0.10f));
-
-    // textura metalica fina en la zona del panel
-    for (int yy = 184; yy < 674; yy += 2)
-    {
-        g.setColour (juce::Colours::white.withAlpha (0.012f + 0.02f * rnd.nextFloat()));
-        g.drawHorizontalLine (yy, 22.f, 658.f);
+        g.setColour (juce::Colours::white.withAlpha (0.01f + 0.018f * rnd.nextFloat()));
+        g.drawHorizontalLine (yy, 20.f, 1080.f);
     }
-    // vineta
     g.setGradientFill (juce::ColourGradient (juce::Colours::transparentBlack, (float) w * 0.5f, (float) h * 0.5f,
                                              juce::Colour (0xe6000000), 0.f, 0.f, true));
     g.fillAll();
@@ -328,114 +468,98 @@ void DioPanel::rebuildBackground()
 void DioPanel::rebuildTitle()
 {
     juce::GlyphArrangement ga;
-    ga.addLineOfText (juce::Font (juce::FontOptions (90.f, juce::Font::bold)), "DioCompVCA", 0.f, 0.f);
+    ga.addLineOfText (juce::Font (juce::FontOptions (90.f, juce::Font::bold | juce::Font::italic)), "DioCompress", 0.f, 0.f);
     titlePath.clear();
     ga.createPath (titlePath);
-    titlePath.applyTransform (juce::AffineTransform::shear (-0.22f, 0.f));   // inclinado tipo graffiti
+    titlePath.applyTransform (juce::AffineTransform::shear (-0.12f, 0.f));
 
     const auto b = titlePath.getBounds();
     if (b.getWidth() <= 0.f) return;
-    const juce::Rectangle<float> area (60.f, 42.f, (float) getWidth() - 120.f, 76.f);
+    const juce::Rectangle<float> area (66.f, 24.f, 210.f, 42.f);
     const float s = juce::jmin (area.getWidth() / b.getWidth(), area.getHeight() / b.getHeight());
-    const float tx = area.getCentreX() - b.getWidth() * s * 0.5f;
+    const float tx = area.getX();
     const float ty = area.getCentreY() - b.getHeight() * s * 0.5f;
     titlePath.applyTransform (juce::AffineTransform::translation (-b.getX(), -b.getY()).scaled (s).translated (tx, ty));
 }
 
-// Medidor de aguja retroiluminado (estilo CLA-2A)
-void DioPanel::drawVU (juce::Graphics& g, juce::Rectangle<float> r)
+// Medidor de aguja de reduccion de ganancia (cara retroiluminada rosa/violeta)
+void DioPanel::drawMeter (juce::Graphics& g, juce::Rectangle<float> r)
 {
-    const bool grMode = (vuMode == 0);
+    g.setGradientFill (juce::ColourGradient (juce::Colour (0xff2a2438), r.getX(), r.getY(), juce::Colour (0xff0a0812), r.getX(), r.getBottom(), false));
+    g.fillRoundedRectangle (r, 12.f);
+    g.setColour (juce::Colour (0xff05030a));
+    g.drawRoundedRectangle (r, 12.f, 2.f);
 
-    // marco metalico
-    g.setGradientFill (juce::ColourGradient (juce::Colour (0xffe9edf7), r.getX(), r.getY(),
-                                             juce::Colour (0xff5d6579), r.getX(), r.getBottom(), false));
-    g.fillRoundedRectangle (r, 10.f);
-    g.setColour (juce::Colour (0xff0b0e16));
-    g.drawRoundedRectangle (r, 10.f, 1.5f);
-
-    auto face = r.reduced (9.f);
-    g.setColour (juce::Colour (0xff1a1205));
-    g.fillRoundedRectangle (face.expanded (2.f), 6.f);
-    // cara retroiluminada
-    g.setGradientFill (juce::ColourGradient (juce::Colour (0xfffff4d2), face.getCentreX(), face.getBottom() - 8.f,
-                                             juce::Colour (0xffc48a35), face.getX(), face.getY(), true));
-    g.fillRoundedRectangle (face, 5.f);
+    auto face = r.reduced (14.f);
+    g.setColour (juce::Colour (0xff12081e));
+    g.fillRoundedRectangle (face.expanded (3.f), 8.f);
+    g.setGradientFill (juce::ColourGradient (juce::Colour (0xffffb4c8), face.getCentreX(), face.getBottom() - 4.f,
+                                             juce::Colour (0xff7a38d8), face.getX(), face.getY(), true));
+    g.fillRoundedRectangle (face, 7.f);
 
     {
         juce::Graphics::ScopedSaveState ss (g);
         g.reduceClipRegion (face.toNearestInt());
 
-        const juce::Point<float> P (face.getCentreX(), face.getBottom() + face.getHeight() * 0.18f);
-        const float R = face.getHeight() * 0.98f;
-        const float half = juce::degreesToRadians (46.f);
+        const juce::Point<float> P (face.getCentreX(), face.getBottom() + face.getHeight() * 0.22f);
+        const float R = face.getHeight() * 1.02f;
+        const float half = juce::degreesToRadians (44.f);
         auto polar = [&] (float ang, float rad) { return juce::Point<float> (P.x + std::sin (ang) * rad, P.y - std::cos (ang) * rad); };
-        auto posOf = [&] (float v) { return grMode ? 1.f - juce::jlimit (0.f, 1.f, v / 20.f)
-                                                   : juce::jlimit (0.f, 1.f, (v + 20.f) / 23.f); };
+        auto posOf = [] (float gr) { return 1.f - std::sqrt (juce::jlimit (0.f, 1.f, gr / 20.f)); };   // escala no lineal
         auto angOf = [&] (float pos) { return -half + pos * 2.f * half; };
-        const juce::Colour ink (0xff2b1a05), red (0xffc0301f);
+        const juce::Colour ink (0xff1c0a2e), hotc (0xffb0125e);
 
-        // zona roja
-        juce::Path redArc;
-        if (grMode) redArc.addCentredArc (P.x, P.y, R * 0.80f, R * 0.80f, 0.f, angOf (0.f), angOf (0.5f), true);
-        else        redArc.addCentredArc (P.x, P.y, R * 0.80f, R * 0.80f, 0.f, angOf (posOf (0.f)), angOf (1.f), true);
-        g.setColour (red.withAlpha (0.85f));
-        g.strokePath (redArc, juce::PathStrokeType (4.f));
+        // zona caliente (mas de 10 dB de reduccion)
+        juce::Path hotArc;
+        hotArc.addCentredArc (P.x, P.y, R * 0.80f, R * 0.80f, 0.f, angOf (posOf (20.f)), angOf (posOf (10.f)), true);
+        g.setColour (hotc.withAlpha (0.8f));
+        g.strokePath (hotArc, juce::PathStrokeType (4.5f));
 
-        // arco de la escala
         juce::Path arc;
         arc.addCentredArc (P.x, P.y, R * 0.80f, R * 0.80f, 0.f, -half, half, true);
         g.setColour (ink);
-        g.strokePath (arc, juce::PathStrokeType (1.2f));
+        g.strokePath (arc, juce::PathStrokeType (1.4f));
 
-        // marcas menores y mayores + numeros
-        const float lo = grMode ? 0.f : -20.f, hi = grMode ? 20.f : 3.f;
-        for (float v = lo; v <= hi + 0.01f; v += 1.f)
+        for (float v = 0.f; v <= 20.01f; v += 1.f)
         {
             const float a = angOf (posOf (v));
-            g.setColour (ink);
-            g.drawLine (juce::Line<float> (polar (a, R * 0.80f), polar (a, R * 0.74f)), 1.f);
+            g.drawLine (juce::Line<float> (polar (a, R * 0.80f), polar (a, R * 0.75f)), 1.f);
         }
-        const std::vector<float> majors = grMode ? std::vector<float> { 0.f, 2.f, 4.f, 6.f, 10.f, 15.f, 20.f }
-                                                 : std::vector<float> { -20.f, -10.f, -7.f, -5.f, -3.f, 0.f, 3.f };
-        g.setFont (juce::Font (juce::FontOptions (10.f, juce::Font::bold)));
-        for (float v : majors)
+        g.setFont (juce::Font (juce::FontOptions (13.f, juce::Font::bold)));
+        for (float v : { 0.f, 1.f, 3.f, 5.f, 7.f, 10.f, 20.f })
         {
             const float a = angOf (posOf (v));
-            const bool isRed = grMode ? (v >= 10.f) : (v >= 0.f);
-            g.setColour (isRed ? red : ink);
+            g.setColour (v >= 10.f ? hotc : ink);
             g.drawLine (juce::Line<float> (polar (a, R * 0.80f), polar (a, R * 0.70f)), 2.f);
             const auto tp = polar (a, R * 0.62f);
-            juce::String txt = (! grMode && v > 0.f) ? "+" + juce::String ((int) v) : juce::String ((int) v);
-            g.drawText (txt, juce::Rectangle<float> (tp.x - 14.f, tp.y - 7.f, 28.f, 14.f), juce::Justification::centred);
+            g.drawText (v == 0.f ? juce::String ("0") : "-" + juce::String ((int) v),
+                        juce::Rectangle<float> (tp.x - 18.f, tp.y - 8.f, 36.f, 16.f), juce::Justification::centred);
         }
 
-        // texto de la cara
-        g.setColour (ink.withAlpha (0.85f));
-        g.setFont (juce::Font (juce::FontOptions (10.f, juce::Font::bold | juce::Font::italic)));
-        g.drawText (grMode ? "GAIN REDUCTION" : "OUTPUT LEVEL", face.withTrimmedTop (face.getHeight() * 0.62f).withHeight (14.f),
-                    juce::Justification::centred);
-        g.setFont (juce::Font (juce::FontOptions (13.f, juce::Font::bold | juce::Font::italic)));
-        g.drawText ("VU", face.withTrimmedTop (face.getHeight() * 0.76f).withHeight (16.f), juce::Justification::centred);
+        g.setColour (ink.withAlpha (0.9f));
+        g.setFont (juce::Font (juce::FontOptions (16.f, juce::Font::bold)));
+        g.drawText ("dB", face.withTrimmedTop (face.getHeight() * 0.58f).withHeight (18.f), juce::Justification::centred);
+        g.setFont (juce::Font (juce::FontOptions (13.f, juce::Font::bold)));
+        g.drawText ("GAIN REDUCTION", face.withTrimmedTop (face.getHeight() * 0.72f).withHeight (16.f), juce::Justification::centred);
 
         // aguja con sombra
         const float na = angOf (juce::jlimit (0.f, 1.f, needlePos));
-        const auto tip = polar (na, R * 0.96f);
-        g.setColour (juce::Colour (0x44000000));
-        g.drawLine (juce::Line<float> (P.translated (3.f, 3.f), tip.translated (3.f, 3.f)), 2.4f);
-        g.setColour (juce::Colour (0xff150d05));
-        g.drawLine (juce::Line<float> (P, tip), 1.8f);
+        const auto tip = polar (na, R * 0.98f);
+        g.setColour (juce::Colour (0x55000000));
+        g.drawLine (juce::Line<float> (P.translated (3.f, 3.f), tip.translated (3.f, 3.f)), 2.8f);
+        g.setColour (juce::Colour (0xff10061a));
+        g.drawLine (juce::Line<float> (P, tip), 2.2f);
 
         // reflejo del vidrio
-        g.setGradientFill (juce::ColourGradient (juce::Colours::white.withAlpha (0.32f), face.getCentreX(), face.getY(),
-                                                 juce::Colours::white.withAlpha (0.f), face.getCentreX(), face.getCentreY() + 8.f, false));
-        g.fillRect (face.withHeight (face.getHeight() * 0.62f));
+        g.setGradientFill (juce::ColourGradient (juce::Colours::white.withAlpha (0.30f), face.getCentreX(), face.getY(),
+                                                 juce::Colours::white.withAlpha (0.f), face.getCentreX(), face.getCentreY() + 10.f, false));
+        g.fillRect (face.withHeight (face.getHeight() * 0.6f));
     }
 
-    drawScrew (g, r.getX() + 5.f, r.getY() + 5.f, 2.6f);
-    drawScrew (g, r.getRight() - 5.f, r.getY() + 5.f, 2.6f);
-    drawScrew (g, r.getX() + 5.f, r.getBottom() - 5.f, 2.6f);
-    drawScrew (g, r.getRight() - 5.f, r.getBottom() - 5.f, 2.6f);
+    drawScrew (g, r.getX() + 8.f, r.getY() + 8.f, 3.f);
+    drawScrew (g, r.getRight() - 8.f, r.getY() + 8.f, 3.f);
+    drawScrew (g, r.getX() + 8.f, r.getBottom() - 8.f, 3.f);
+    drawScrew (g, r.getRight() - 8.f, r.getBottom() - 8.f, 3.f);
 }
 
 void DioPanel::paint (juce::Graphics& g)
@@ -444,130 +568,121 @@ void DioPanel::paint (juce::Graphics& g)
     const float W = (float) kW;
     const float pulse = 0.82f + 0.18f * std::sin (phase);
 
-    // coronas: neon palpitante (arriba derecha) y plata (sobre el titulo)
-    drawCrown (g, { W - 130.f, 10.f, 84.f, 54.f }, neonHi, neon, 3.f, pulse);
-    drawCrown (g, { 62.f, 8.f, 58.f, 40.f }, ice, juce::Colour (0xff9fb6e8), 2.2f, 1.f);
+    // ---- barra superior
+    const juce::Rectangle<float> head (16.f, 12.f, 1068.f, 66.f);
+    g.setGradientFill (juce::ColourGradient (juce::Colour (0xf01c1130), 0.f, head.getY(), juce::Colour (0xf00a0614), 0.f, head.getBottom(), false));
+    g.fillRoundedRectangle (head, 12.f);
+    g.setColour (violet.withAlpha (0.35f + 0.2f * pulse));
+    g.drawRoundedRectangle (head, 12.f, 1.6f);
+    g.setColour (juce::Colour (0x26ffffff));
+    g.drawLine (30.f, head.getY() + 1.5f, head.getRight() - 30.f, head.getY() + 1.5f, 1.f);
 
-    // titulo estilo graffiti: brillo azul + contorno + relleno plateado
-    g.setColour (neon.withAlpha (0.28f * pulse));
-    g.strokePath (titlePath, juce::PathStrokeType (12.f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
-    g.setColour (neon.withAlpha (0.85f));
-    g.strokePath (titlePath, juce::PathStrokeType (5.f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
-    g.setColour (juce::Colour (0xff070b18));
-    g.strokePath (titlePath, juce::PathStrokeType (2.5f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+    // logo DioCompress
+    drawCrown (g, { 26.f, 20.f, 34.f, 24.f }, ice, violetHi, 1.8f, pulse);
+    g.setColour (magenta.withAlpha (0.25f * pulse));
+    g.strokePath (titlePath, juce::PathStrokeType (7.f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+    g.setColour (violet.withAlpha (0.8f));
+    g.strokePath (titlePath, juce::PathStrokeType (3.f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
     const auto tb = titlePath.getBounds();
-    g.setGradientFill (juce::ColourGradient::vertical (juce::Colour (0xfffbfcff), tb.getY(), juce::Colour (0xff8f99b3), tb.getBottom()));
+    g.setGradientFill (juce::ColourGradient::vertical (juce::Colour (0xfffbf5ff), tb.getY(), juce::Colour (0xffa57be0), tb.getBottom()));
     g.fillPath (titlePath);
+    g.setColour (violetHi.withAlpha (0.8f));
+    g.setFont (juce::Font (juce::FontOptions (10.f, juce::Font::bold)));
+    g.drawText ("3 - I N - 1   C O M P R E S S O R", 66, 62, 220, 13, juce::Justification::centredLeft);
 
-    // subtitulo
-    g.setColour (neonHi);
-    g.setFont (juce::Font (juce::FontOptions (15.f, juce::Font::bold | juce::Font::italic)));
-    g.drawText ("V C A    C O M P R E S S O R", 0, 118, kW, 20, juce::Justification::centred);
-    g.setColour (ice.withAlpha (0.35f));
-    g.drawLine (120.f, 129.f, W * 0.5f - 130.f, 129.f, 1.f);
-    g.drawLine (W * 0.5f + 130.f, 129.f, W - 120.f, 129.f, 1.f);
-
-    // etiqueta de presets
-    g.setColour (neonHi);
+    // ---- barra secundaria
+    g.setColour (violetHi);
     g.setFont (juce::Font (juce::FontOptions (12.f, juce::Font::bold)));
-    g.drawText ("PRESET", kW / 2 - 190, 146, 70, 26, juce::Justification::centredRight);
+    g.drawText ("SOURCE", 24, 86, 60, 28, juce::Justification::centredLeft);
+    g.drawText ("SAFETY", 820, 86, 60, 28, juce::Justification::centredRight);
+    if (uiTopo != 0)
+    {
+        g.setColour (violetHi.withAlpha (0.85f));
+        g.setFont (juce::Font (juce::FontOptions (13.f, juce::Font::bold | juce::Font::italic)));
+        g.drawText (uiTopo == 1 ? "OPTICAL CELL  -  PROGRAM-DEPENDENT RESPONSE"
+                                : "VARI-MU TUBE  -  PROGRESSIVE RATIO",
+                    350, 86, 400, 28, juce::Justification::centred);
+    }
 
-    // panel principal (vidrio oscuro con brillo superior)
-    const juce::Rectangle<float> panel (20.f, 182.f, 640.f, 494.f);
-    g.setGradientFill (juce::ColourGradient (juce::Colour (0xd01a2133), 0.f, panel.getY(),
-                                             juce::Colour (0xd0090c15), 0.f, panel.getBottom(), false));
-    g.fillRoundedRectangle (panel, 12.f);
+    // ---- panel principal
+    const juce::Rectangle<float> panel (16.f, 122.f, 1068.f, 590.f);
+    g.setGradientFill (juce::ColourGradient (juce::Colour (0xd01a1030), 0.f, panel.getY(), juce::Colour (0xd0080510), 0.f, panel.getBottom(), false));
+    g.fillRoundedRectangle (panel, 14.f);
     g.setColour (juce::Colour (0x26ffffff));
     g.drawLine (34.f, panel.getY() + 1.5f, panel.getRight() - 34.f, panel.getY() + 1.5f, 1.f);
-    g.setColour (neon.withAlpha (0.4f));
-    g.drawRoundedRectangle (panel, 12.f, 1.3f);
-    drawScrew (g, 30.f, 192.f, 3.f);   drawScrew (g, 650.f, 192.f, 3.f);
-    drawScrew (g, 30.f, 666.f, 3.f);   drawScrew (g, 650.f, 666.f, 3.f);
+    g.setColour (violet.withAlpha (0.45f));
+    g.drawRoundedRectangle (panel, 14.f, 1.4f);
 
-    // titulos de seccion con barra de color
-    auto section = [&] (const juce::String& text, int y, juce::Colour c)
+    // franjas diagonales en las esquinas
+    for (int i = 0; i < 4; ++i)
     {
-        g.setColour (c);
-        g.fillRoundedRectangle (42.f, (float) y + 3.f, 4.f, 11.f, 2.f);
-        g.setColour (c.interpolatedWith (juce::Colours::white, 0.4f));
-        g.setFont (juce::Font (juce::FontOptions (12.f, juce::Font::bold)));
-        g.drawText (text, 52, y, 520, 16, juce::Justification::centredLeft);
-    };
-    section ("C O M P R E S S O R", 186, neon);
-    section ("L E V E L   &   O P T I O N S", 346, cyan);
-    section ("C H A R A C T E R   :   B O D Y   /   D R I V E   /   P U N C H   /   P R E S E N C E", 506, orange);
+        const float o = (float) i * 15.f;
+        juce::Path s1, s2;
+        s1.startNewSubPath (22.f + o, 128.f);  s1.lineTo (31.f + o, 128.f);  s1.lineTo (22.f, 137.f + o);  s1.lineTo (22.f, 128.f + o);  s1.closeSubPath();
+        s2.startNewSubPath (1078.f - o, 706.f); s2.lineTo (1069.f - o, 706.f); s2.lineTo (1078.f, 697.f - o); s2.lineTo (1078.f, 706.f - o); s2.closeSubPath();
+        g.setColour (violet.withAlpha (0.55f - 0.1f * (float) i));
+        g.fillPath (s1);
+        g.setColour (magenta.withAlpha (0.5f - 0.1f * (float) i));
+        g.fillPath (s2);
+    }
 
-    g.setColour (ice.withAlpha (0.7f));
-    g.setFont (juce::Font (juce::FontOptions (10.f, juce::Font::bold)));
-    g.drawText ("SAFETY", 556, 424, 100, 14, juce::Justification::centred);
+    // titulo sobre el medidor (segun topologia)
+    g.setColour (violet);
+    g.setFont (juce::Font (juce::FontOptions (19.f, juce::Font::bold)));
+    g.drawText (uiTopo == 0 ? "V C A   C O M P R E S S O R"
+              : uiTopo == 1 ? "O P T I C A L   C O M P R E S S O R"
+                            : "V A R I - M U   C O M P R E S S O R",
+                (int) meterArea.getX(), 126, meterArea.getWidth(), 24, juce::Justification::centred);
 
-    // ---- medidor de aguja
-    drawVU (g, vuArea.toFloat());
+    drawMeter (g, meterArea.toFloat());
 
-    // LEDs de modo + lecturas digitales
-    const bool grMode = (vuMode == 0);
-    auto led = [&] (float cx, bool on, const juce::String& t)
-    {
-        if (on) { g.setColour (amber.withAlpha (0.35f)); g.fillEllipse (cx - 8.f, 358.f, 16.f, 16.f); }
-        g.setColour (on ? amber : juce::Colour (0xff2a2418));
-        g.fillEllipse (cx - 4.5f, 361.5f, 9.f, 9.f);
-        g.setColour (on ? ice : ice.withAlpha (0.45f));
-        g.setFont (juce::Font (juce::FontOptions (11.f, juce::Font::bold)));
-        g.drawText (t, (int) cx + 8, 359, 80, 14, juce::Justification::centredLeft);
-    };
-    led (700.f, grMode, "GAIN RED.");
-    led (800.f, ! grMode, "OUTPUT");
-
-    auto readout = [&] (juce::Rectangle<float> rc, const juce::String& cap, const juce::String& val)
-    {
-        g.setColour (juce::Colour (0xff06080e));
-        g.fillRoundedRectangle (rc, 6.f);
-        g.setColour (amber.withAlpha (0.35f));
-        g.drawRoundedRectangle (rc, 6.f, 1.f);
-        g.setColour (ice.withAlpha (0.55f));
-        g.setFont (juce::Font (juce::FontOptions (9.f, juce::Font::bold)));
-        g.drawText (cap, rc.withHeight (11.f).translated (0.f, 2.f), juce::Justification::centred);
-        g.setColour (amber);
-        g.setFont (juce::Font (juce::FontOptions (16.f, juce::Font::bold)));
-        g.drawText (val, rc.withTrimmedTop (11.f), juce::Justification::centred);
-    };
-    readout ({ 684.f, 380.f, 104.f, 34.f }, "GR", juce::String (meterDisp > 0.05f ? -meterDisp : 0.f, 1) + " dB");
-    readout ({ 796.f, 380.f, 104.f, 34.f }, "OUT", (outDisp <= -59.f ? juce::String ("-inf") : juce::String (outDisp, 1)) + " dB");
-
-    // ---- placa de marca
-    const auto pl = plateArea.toFloat();
-    g.setGradientFill (juce::ColourGradient (juce::Colour (0xff1c2438), pl.getX(), pl.getY(),
-                                             juce::Colour (0xff080b13), pl.getX(), pl.getBottom(), false));
-    g.fillRoundedRectangle (pl, 12.f);
-    g.setColour (neon.withAlpha (0.35f + 0.25f * (pulse - 0.64f) / 0.36f));
-    g.drawRoundedRectangle (pl, 12.f, 1.6f);
-    drawCrown (g, { pl.getCentreX() - 46.f, pl.getY() + 22.f, 92.f, 60.f }, neonHi, neon, 3.5f, pulse);
-    g.setGradientFill (juce::ColourGradient::vertical (juce::Colour (0xfffbfcff), pl.getY() + 98.f, juce::Colour (0xff8f99b3), pl.getY() + 130.f));
-    g.setFont (juce::Font (juce::FontOptions (27.f, juce::Font::bold | juce::Font::italic)));
-    g.drawText ("DioOnTheBeat", pl.withTrimmedTop (96.f).withHeight (36.f), juce::Justification::centred);
-    g.setColour (neonHi);
-    g.setFont (juce::Font (juce::FontOptions (13.f, juce::Font::bold | juce::Font::italic)));
-    g.drawText ("B E A T M A K E R", pl.withTrimmedTop (136.f).withHeight (18.f), juce::Justification::centred);
-    g.setColour (ice.withAlpha (0.3f));
-    g.drawLine (pl.getX() + 30.f, pl.getY() + 164.f, pl.getRight() - 30.f, pl.getY() + 164.f, 1.f);
-    g.setColour (orange);
+    // controles ocultos segun la topologia: se explica por que
+    g.setColour (violetHi.withAlpha (0.55f));
     g.setFont (juce::Font (juce::FontOptions (12.f, juce::Font::bold)));
-    g.drawText ("808  READY", pl.withTrimmedTop (172.f).withHeight (16.f), juce::Justification::centred);
-    g.setColour (ice.withAlpha (0.55f));
-    g.setFont (juce::Font (juce::FontOptions (10.f, juce::Font::bold)));
-    g.drawText ("PUNCH  -  BODY  -  PRESENCE", pl.withTrimmedTop (192.f).withHeight (14.f), juce::Justification::centred);
-    g.setGradientFill (juce::ColourGradient (juce::Colours::white.withAlpha (0.10f), pl.getX(), pl.getY(),
-                                             juce::Colours::white.withAlpha (0.f), pl.getX(), pl.getCentreY(), false));
-    g.fillRoundedRectangle (pl.reduced (2.f).withHeight (pl.getHeight() * 0.5f), 10.f);
+    if (uiTopo == 1)
+    {
+        g.drawText ("ATTACK", 34, 410, 118, 16, juce::Justification::centred);
+        g.drawText ("AUTO (CELL)", 34, 470, 118, 16, juce::Justification::centred);
+    }
+    if (uiTopo != 0)
+    {
+        g.drawText ("KNEE", 34 + 4 * 118 - 118 * 0, 410, 0, 0, juce::Justification::centred);
+        g.drawText ("KNEE", 270, 410, 118, 16, juce::Justification::centred);
+        g.drawText (uiTopo == 1 ? "FIXED" : "CURVE", 270, 470, 118, 16, juce::Justification::centred);
+    }
+
+    // divisores
+    g.setColour (ice.withAlpha (0.14f));
+    g.drawLine (40.f, 396.f, 1060.f, 396.f, 1.f);
+    g.drawLine (40.f, 562.f, 1060.f, 562.f, 1.f);
+
+    // medidores de entrada y salida
+    drawLedBar (g, { 668.f, 450.f, 380.f, 22.f }, inDisp, "INPUT");
+    drawLedBar (g, { 668.f, 516.f, 380.f, 22.f }, outDisp, "OUTPUT");
+
+    // seccion de nivel y panel ANALOG COLOR
+    g.setColour (violetHi);
+    g.setFont (juce::Font (juce::FontOptions (12.f, juce::Font::bold)));
+    g.drawText ("L E V E L   &   M I X", 34, 568, 400, 18, juce::Justification::centredLeft);
+
+    const juce::Rectangle<float> an (528.f, 566.f, 540.f, 142.f);
+    g.setGradientFill (juce::ColourGradient (juce::Colour (0x66300a38), an.getX(), an.getY(), juce::Colour (0x66100618), an.getX(), an.getBottom(), false));
+    g.fillRoundedRectangle (an, 12.f);
+    g.setColour (magenta.withAlpha (analogUiOn ? 0.75f : 0.3f));
+    g.drawRoundedRectangle (an, 12.f, 1.5f);
+    g.setColour (magenta.interpolatedWith (juce::Colours::white, 0.35f));
+    g.setFont (juce::Font (juce::FontOptions (12.f, juce::Font::bold)));
+    g.drawText ("A N A L O G   C O L O R", 544, 568, 300, 18, juce::Justification::centredLeft);
 
     // pie
-    g.setColour (ice.withAlpha (0.75f));
+    g.setColour (ice.withAlpha (0.7f));
     g.setFont (juce::Font (juce::FontOptions (12.f, juce::Font::bold)));
     g.drawText (juce::String::fromUTF8 ("BEATS  \xe2\x80\xa2  MIX  \xe2\x80\xa2  MASTER  \xe2\x80\xa2  CREATIVE SOUNDS"),
-                0, 684, kW, 16, juce::Justification::centred);
-    g.setColour (neonHi);
+                0, 716, kW, 14, juce::Justification::centred);
+    g.setColour (violetHi);
     g.setFont (juce::Font (juce::FontOptions (13.f, juce::Font::bold)));
-    g.drawText ("@DioOnTheBeat", 0, 702, kW, 18, juce::Justification::centred);
+    g.drawText ("@DioOnTheBeat", 0, 730, kW, 14, juce::Justification::centred);
+    (void) W;
 }
 
 void DioPanel::resized()
@@ -575,33 +690,53 @@ void DioPanel::resized()
     rebuildBackground();
     rebuildTitle();
 
-    presetBox.setBounds (kW / 2 - 110, 146, 220, 26);
-    settingsBtn.setBounds (kW - 140, 146, 120, 26);
+    // barra superior
+    prevBtn.setBounds (294, 26, 32, 38);
+    presetBox.setBounds (330, 26, 230, 38);
+    nextBtn.setBounds (564, 26, 32, 38);
+    for (int i = 0; i < 3; ++i) topoBtn[(size_t) i].setBounds (616 + i * 94, 26, 90, 38);
+    settingsBtn.setBounds (904, 26, 86, 38);
+    powerBtn.setBounds (1006, 18, 62, 58);
 
-    const int colW = 106, x0 = 24;
-    const int rowY[3] = { 204, 364, 524 };
-    for (int i = 0; i < 16; ++i)
+    // barra secundaria
+    profileBox.setBounds (88, 86, 200, 28);
+    for (int i = 0; i < 3; ++i) modeBtn[(size_t) i].setBounds (394 + i * 104, 86, 100, 28);
+    safetyBox.setBounds (888, 86, 186, 28);
+
+    auto place = [this] (int i, int x, int y, int w, int h)
     {
-        const int row = (i < 6) ? 0 : (i < 10) ? 1 : 2;
-        const int col = (i < 6) ? i : (i < 10) ? i - 6 : i - 10;
-        knobs[(size_t) i].l.setBounds (x0 + col * colW, rowY[row], colW, 16);
-        knobs[(size_t) i].s.setBounds (x0 + col * colW, rowY[row] + 16, colW, 124);
-    }
-
-    // botones y selector de seguridad junto a los knobs de nivel
-    const int tx = x0 + 4 * colW + 2;
-    toggles[0].b.setBounds (tx, 386, 102, 38);
-    toggles[1].b.setBounds (tx + 104, 386, 102, 38);
-    toggles[2].b.setBounds (tx, 436, 102, 38);
-    safetyBox.setBounds (tx + 106, 440, 98, 30);
+        knobs[(size_t) i].l.setBounds (x, y, w, 18);
+        knobs[(size_t) i].s.setBounds (x, y + 18, w, h);
+    };
+    // fila A: threshold, (medidor), ratio
+    place (0, 40, 128, 230, 246);
+    place (1, 830, 128, 230, 246);
+    // fila B
+    const int bx = 34, bw = 118;
+    place (2, bx + 0 * bw, 404, bw, 134);   // attack
+    place (3, bx + 1 * bw, 404, bw, 134);   // release
+    place (4, bx + 2 * bw, 404, bw, 134);   // knee
+    place (5, bx + 3 * bw, 404, bw, 134);   // sc hpf
+    place (6, bx + 4 * bw, 404, bw, 134);   // ceiling
+    // fila C
+    place (7, bx + 0 * bw, 590, bw, 118);   // input
+    place (8, bx + 1 * bw, 590, bw, 118);   // makeup
+    place (9, bx + 2 * bw, 590, bw, 118);   // output
+    place (10, bx + 3 * bw, 590, bw, 118);  // dry/wet
+    place (11, 548, 590, bw, 118);          // drive
+    place (12, 548 + bw, 590, bw, 118);     // color
+    place (13, 548 + 2 * bw, 590, bw, 118); // mix analogico
+    knobs[8].l.setBounds (bx + 1 * bw, 590, 66, 18);                 // etiqueta MAKEUP mas corta
+    autoMkBtn.setBounds (bx + 1 * bw + 64, 588, 56, 22);
+    analogBtn.setBounds (930, 600, 124, 40);
 }
 
 // ---------------------------------------------------------------- Ventana escalable
-VCACompAudioProcessorEditor::VCACompAudioProcessorEditor (VCACompAudioProcessor& p)
+DioCompressEditor::DioCompressEditor (DioCompressProcessor& p)
     : AudioProcessorEditor (&p), proc (p), panel (p)
 {
     addAndMakeVisible (panel);
-    setResizeLimits (368, 290, 1380, 1086);                      // 40% a 150%
+    setResizeLimits (440, 298, 1650, 1116);                      // 40% a 150%
     getConstrainer()->setFixedAspectRatio ((double) DioPanel::kW / (double) DioPanel::kH);
     setResizable (true, true);
 
@@ -612,11 +747,11 @@ VCACompAudioProcessorEditor::VCACompAudioProcessorEditor (VCACompAudioProcessor&
     };
     panel.getSizePercent = [this] { return juce::roundToInt (100.f * (float) getWidth() / (float) DioPanel::kW); };
 
-    const int w = juce::jlimit (368, 1380, p.savedEditorWidth);
+    const int w = juce::jlimit (440, 1650, p.savedEditorWidth);
     setSize (w, juce::roundToInt ((float) w * (float) DioPanel::kH / (float) DioPanel::kW));
 }
 
-void VCACompAudioProcessorEditor::resized()
+void DioCompressEditor::resized()
 {
     const float s = (float) getWidth() / (float) DioPanel::kW;
     panel.setBounds (0, 0, DioPanel::kW, DioPanel::kH);

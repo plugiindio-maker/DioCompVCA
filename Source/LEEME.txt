@@ -1,0 +1,25 @@
+DioCompVCA - Compresor VCA (VST3)
+
+NOVEDADES
+ - SETTINGS (arriba a la derecha): tamano de la ventana 40% / 50% / 60% / 70% / 80% / 90% / 100% / 125%.
+   Tambien puedes arrastrar la esquina inferior derecha. El tamano se recuerda.
+ - Medidor de aguja tipo CLA-2A. Haz clic en el medidor para cambiar entre GAIN REDUCTION y OUTPUT.
+ - DRIVE  : saturacion de medios y agudos (carácter, "caro"), sin aliasing, sin cambiar el volumen.
+ - PUNCH  : realza el inicio de cada golpe (pegada) sin tocar el sostenido.
+ - PRESENCE: shelf de agudos hasta +6 dB (presencia, "a la cara").
+ - BODY / WEIGHT / BODY FREQ: cuerpo y peso para 808 y bajos.
+ - SAFETY (reemplaza al limitador fijo): OFF (por defecto) / LIMIT (limitador) / CLIP (clipper suave).
+     OFF   : no toca nada (recomendado para 808 y bajos).
+     LIMIT : limitador con lookahead (voces, bus).
+     CLIP  : recorta suave solo los picos que pasan el CEILING; deja pasar los transitorios del 808.
+
+PRESETS: Default, Vocal, Drums, Mix Bus Glue, Synths / Keys, 808 Punch, 808 Heavy, Reese / Moog Bass, Trap In Your Face
+
+BOTONES
+ AUTO MAKEUP : recupera volumen solo. Apagalo para controlarlo a mano con la perilla MAKEUP.
+ AUTO REL    : release que se adapta al material.
+ RMS         : detector mas suave (buses, voces). Apagado = detecta picos.
+
+COMO OBTENER EL INSTALADOR (GitHub)
+ Sube los archivos nuevos a la carpeta Source de tu repositorio (Add file > Upload files > Commit changes),
+ espera en Actions a que salga la palomita verde y baja el .zip de la seccion Artifacts.
