@@ -1,9 +1,7 @@
-name: Build DioCompVCA
-
+name: Build DioCompress
 on:
   push:
   workflow_dispatch:
-
 jobs:
   windows:
     runs-on: windows-latest
@@ -16,15 +14,15 @@ jobs:
       - name: Install Inno Setup
         run: choco install innosetup -y --no-progress
       - name: Build installer
-        run: '& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\DioCompVCA.iss'
+        run: '& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\DioCompress.iss'
       - name: Zip VST3 (sin instalador)
         shell: pwsh
-        run: Compress-Archive -Path "build/DioCompVCA_artefacts/Release/VST3/DioCompVCA.vst3" -DestinationPath DioCompVCA_VST3_Windows.zip
+        run: Compress-Archive -Path "build/DioCompress_artefacts/Release/VST3/DioCompress.vst3" -DestinationPath DioCompress_VST3_Windows.zip
       - uses: actions/upload-artifact@v4
         with:
-          name: DioCompVCA-Windows-Instalador
-          path: installer/Output/DioCompVCA_Setup.exe
+          name: DioCompress-Windows-Instalador
+          path: installer/Output/DioCompress_Setup.exe
       - uses: actions/upload-artifact@v4
         with:
-          name: DioCompVCA-Windows-VST3-zip
-          path: DioCompVCA_VST3_Windows.zip
+          name: DioCompress-Windows-VST3-zip
+          path: DioCompress_VST3_Windows.zip
