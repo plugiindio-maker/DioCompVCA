@@ -23,14 +23,26 @@ public:
     double getTailLengthSeconds() const override { return 0.0; }
     juce::AudioProcessorParameter* getBypassParameter() const override { return apvts.getParameter ("bypass"); }
 
-    // Presets (se ven como "programas" en el DAW): 0 = Init, luego perfil x topologia
+    // ---- Presets de fabrica (tambien visibles como "programas" en el DAW): 0 = Init, luego perfil x topologia
     int getNumPrograms() override;
-    int getCurrentProgram() override { return currentPreset; }
-    void setCurrentProgram (int index) override;
+    int getCurrentProgram() override { return currentFactory; }
+    void setCurrentProgram (int index) override { loadFactoryPreset (index); }
     const juce::String getProgramName (int index) override;
     void changeProgramName (int, const juce::String&) override {}
+    void loadFactoryPreset (int index);
 
-    // Perfiles de fuente (sugerencias editables segun la topologia actual)
+    // ---- Presets de usuario (archivos en disco, persisten entre sesiones y DAWs)
+    static juce::File getUserPresetDir();
+    juce::StringArray getUserPresetNames() const;
+    bool userPresetExists (const juce::String& name) const;
+    bool saveUserPreset (const juce::String& name, bool overwrite);   // false si ya existe y overwrite = false, o si no se pudo escribir
+    bool loadUserPreset (const juce::String& name);
+    bool deleteUserPreset (const juce::String& name);
+    bool renameUserPreset (const juce::String& oldName, const juce::String& newName);
+    const juce::String& getCurrentPresetName() const { return currentPresetName; }
+    bool isCurrentPresetUser() const { return currentPresetUser; }
+
+    // ---- Perfiles de fuente (sugerencias editables para la topologia actual)
     void applyProfile (int profile);
     int getCurrentProfile() const { return currentProfile; }
 
@@ -43,26 +55,35 @@ public:
     std::atomic<float> grMeter  { 0.0f };    // reduccion de ganancia (dB, positivo)
     std::atomic<float> inMeter  { -80.0f };  // pico de entrada (dB)
     std::atomic<float> outMeter { -80.0f };  // pico de salida (dB)
-    int savedEditorWidth = 770;              // ancho de la ventana (se guarda con el proyecto)
 
 private:
-    float currentMakeupDb() const;
+    float currentInputDb() const;
+    float currentMix() const;
+    float currentPostGainDb() const;
     void clearState();
     void setParam (const char* id, float denormalisedValue);
     void applyProfileFor (int profile, int topology);
     void applyInit();
+    void finishPresetLoad (const juce::String& name, bool user, int factoryIndex);
 
-    std::atomic<float> *pTopo = nullptr, *pVmode = nullptr, *pIn = nullptr, *pThr = nullptr, *pRatio = nullptr,
-                       *pAtk = nullptr, *pRel = nullptr, *pKnee = nullptr, *pMakeup = nullptr, *pMix = nullptr,
-                       *pHpf = nullptr, *pOut = nullptr, *pCeil = nullptr, *pAutoMk = nullptr, *pBypass = nullptr,
-                       *pSafety = nullptr, *pAnalog = nullptr, *pDrive = nullptr, *pColor = nullptr, *pAmix = nullptr;
+    struct Ptrs
+    {
+        std::atomic<float> *topo, *bypass, *safety, *ceil,
+            *vmode, *vthr, *vratio, *vatk, *vrel, *vknee, *vmk, *vauto, *vhpf, *vmix,
+            *opeak, *ogain, *olimit, *oemph, *oauto, *omix,
+            *minput, *mthr, *mrec, *mbias, *mdens, *mout, *mauto, *mmix,
+            *analog, *drive, *color, *amix, *bpon, *bpamt;
+    } pr {};
 
     double fs = 44100.0;
-    int currentPreset = 0, currentProfile = -1;
+    int currentFactory = 0, currentProfile = -1;
+    juce::String currentPresetName { "Init" };
+    bool currentPresetUser = false;
 
-    // detector (sidechain con HPF, enlazado estereo)
-    float hpState[2] { 0.f, 0.f };
-    float ms20 = 0.f, ms40 = 0.f;
+    // detectores (cada topologia tiene el suyo) + BASS PRESERVE
+    float hpV[2] {}, hpD[2] {}, emL[2] {}, lpB1[2] {}, lpB2[2] {};
+    float msV = 0.f, msO = 0.f, msM = 0.f;
+    float grBp = 0.f;
 
     // estados de las tres topologias (corren siempre; se mezclan con pesos suavizados)
     float vF = 0.f, vS = 0.f;                   // VCA
@@ -70,7 +91,7 @@ private:
     float mF = 0.f, mS = 0.f;                   // VARI-MU
 
     // ANALOG COLOR (independiente de la compresion)
-    float aLp1[2] { 0.f, 0.f }, aLp2[2] { 0.f, 0.f };
+    float aLp1[2] {}, aLp2[2] {};
     float aPU[2][2] {}, aPLn[2][2] {}, aDcX[2][2] {}, aDcY[2][2] {};
     float aMsIn = 0.f, aMsOut = 0.f;
 
@@ -84,8 +105,8 @@ private:
     double minSum = 72.0;
     float limGain = 1.f;
 
-    juce::SmoothedValue<float> smIn, smMix, smOut, smMakeup, smDrive, smColor, smAmix, smAnalog, smBypass,
-                               smWV, smWO, smWM;
+    juce::SmoothedValue<float> smIn, smMix, smMakeup, smDrive, smColor, smAmix, smAnalog, smBypass,
+                               smWV, smWO, smWM, smBpOn, smBpAmt;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DioCompressProcessor)
 };

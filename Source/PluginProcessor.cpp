@@ -8,48 +8,51 @@ using FAttr  = juce::AudioParameterFloatAttributes;
 
 namespace
 {
-    constexpr int kNumProfiles = 7, kNumProfileValues = 12;
-    const char* const kProfileIds[kNumProfileValues] = {
-        "thr", "ratio", "attack", "release", "knee", "hpf", "vcamode", "analogon", "drive", "color", "amix", "mix" };
+    constexpr int kNumProfiles = 7;
     const char* const kProfileNames[kNumProfiles] = {
         "VOCAL", "KICK", "SNARE", "DRUM BUS", "808 / BASS", "INSTRUMENTAL", "MASTER BUS" };
     const char* const kTopoNames[3] = { "VCA", "OPTICO", "VARI-MU" };
     const char* const kModeNames[3] = { "SMOOTH", "PUNCH", "AGGRESSIVE" };
 
-    // Sugerencias por perfil y topologia: [perfil][VCA, OPTICO, VARI-MU]
-    // (vcamode: 0 SMOOTH, 1 PUNCH, 2 AGGRESSIVE; en OPTICO/VARI-MU no se usa)
-    //                         thr    ratio atk    rel    knee  hpf    mode an   drv   col   amix  mix
-    const float kProfiles[kNumProfiles][3][kNumProfileValues] = {
-        { // VOCAL
-            { -22.f, 3.5f, 12.f, 140.f,  9.f, 100.f, 0.f, 1.f, 15.f, 40.f, 40.f, 100.f },
-            { -24.f, 4.f,  10.f, 300.f, 12.f,  80.f, 0.f, 1.f, 12.f, 55.f, 35.f, 100.f },
-            { -22.f, 5.f,  20.f, 250.f, 10.f,  90.f, 0.f, 1.f, 18.f, 60.f, 40.f, 100.f } },
-        { // KICK
-            { -14.f, 4.f,  25.f,  80.f,  3.f,  30.f, 1.f, 1.f, 20.f, 30.f, 35.f, 100.f },
-            { -18.f, 4.f,  10.f, 200.f, 12.f,  40.f, 0.f, 0.f, 20.f, 30.f, 35.f, 100.f },
-            { -18.f, 4.f,  30.f, 150.f, 10.f,  35.f, 0.f, 1.f, 20.f, 40.f, 35.f, 100.f } },
-        { // SNARE
-            { -15.f, 5.f,  20.f,  90.f,  3.f, 120.f, 1.f, 1.f, 25.f, 35.f, 40.f, 100.f },
-            { -18.f, 3.5f, 10.f, 250.f, 12.f, 100.f, 0.f, 0.f, 20.f, 35.f, 35.f, 100.f },
-            { -17.f, 5.f,  25.f, 160.f, 10.f, 110.f, 0.f, 1.f, 22.f, 40.f, 40.f, 100.f } },
-        { // DRUM BUS
-            { -16.f, 4.f,  30.f, 100.f,  4.f,  80.f, 2.f, 1.f, 30.f, 45.f, 45.f, 100.f },
-            { -18.f, 3.f,  10.f, 300.f, 12.f,  80.f, 0.f, 0.f, 20.f, 40.f, 35.f, 100.f },
-            { -16.f, 4.f,  30.f, 200.f, 10.f,  80.f, 0.f, 1.f, 25.f, 45.f, 40.f, 100.f } },
-        { // 808 / BASS
-            { -20.f, 3.f,  25.f, 250.f,  8.f,  25.f, 0.f, 1.f, 25.f, 50.f, 40.f, 100.f },
-            { -22.f, 3.f,  10.f, 400.f, 12.f,  25.f, 0.f, 1.f, 20.f, 50.f, 35.f, 100.f },
-            { -22.f, 3.f,  30.f, 300.f, 10.f,  25.f, 0.f, 1.f, 22.f, 55.f, 35.f, 100.f } },
-        { // INSTRUMENTAL
-            { -18.f, 3.f,  15.f, 150.f,  8.f,  60.f, 0.f, 1.f, 20.f, 45.f, 35.f, 100.f },
-            { -20.f, 3.f,  10.f, 300.f, 12.f,  60.f, 0.f, 0.f, 20.f, 45.f, 35.f, 100.f },
-            { -18.f, 3.f,  20.f, 220.f, 10.f,  60.f, 0.f, 1.f, 20.f, 50.f, 35.f, 100.f } },
-        { // MASTER BUS
-            { -12.f, 2.f,  30.f, 150.f, 10.f,  80.f, 0.f, 0.f, 15.f, 40.f, 30.f, 100.f },
-            { -14.f, 2.f,  10.f, 400.f, 12.f,  80.f, 0.f, 0.f, 15.f, 40.f, 30.f, 100.f },
-            { -12.f, 2.5f, 30.f, 250.f, 10.f,  80.f, 0.f, 1.f, 10.f, 40.f, 30.f, 100.f } },
-    };
+    const char* const kVcaIds[8]   = { "vthr", "vratio", "vattack", "vrelease", "vknee", "vhpf", "vmode", "vmix" };
+    const char* const kOptIds[4]   = { "opeak", "olimit", "oemph", "omix" };
+    const char* const kMuIds[6]    = { "minput", "mthr", "mrecov", "mbias", "mdens", "mmix" };
+    const char* const kExtraIds[6] = { "analogon", "drive", "color", "amix", "bpon", "bpamt" };
+
+    // Sugerencias por fuente (puntos de partida editables). Cada topologia tiene SUS controles.
+    //                                    thr    ratio atk    rel    knee  hpf    mode mix
+    const float kVcaProf[kNumProfiles][8] = {
+        { -22.f, 3.5f, 12.f, 140.f,  9.f, 100.f, 0.f, 100.f },   // VOCAL      (smooth)
+        { -14.f, 4.f,  25.f,  80.f,  3.f,  30.f, 1.f, 100.f },   // KICK       (punch)
+        { -15.f, 5.f,  20.f,  90.f,  3.f, 120.f, 1.f, 100.f },   // SNARE      (punch)
+        { -16.f, 4.f,  30.f, 100.f,  4.f,  80.f, 2.f, 100.f },   // DRUM BUS   (aggressive)
+        { -20.f, 3.f,  25.f, 250.f,  8.f,  25.f, 0.f, 100.f },   // 808 / BASS (smooth)
+        { -18.f, 3.f,  15.f, 150.f,  8.f,  60.f, 0.f, 100.f },   // INSTRUMENTAL
+        { -12.f, 2.f,  30.f, 150.f, 10.f,  80.f, 0.f, 100.f } }; // MASTER BUS
+    //                                    peak  limit emph mix
+    const float kOptProf[kNumProfiles][4] = {
+        { 48.f, 0.f, 15.f, 100.f }, { 36.f, 0.f,  0.f, 100.f }, { 36.f, 1.f, 10.f, 100.f }, { 36.f, 0.f,  0.f, 100.f },
+        { 44.f, 0.f,  0.f, 100.f }, { 40.f, 0.f, 10.f, 100.f }, { 28.f, 0.f,  0.f, 100.f } };
+    //                                    input  thr    recov bias dens  mix
+    const float kMuProf[kNumProfiles][6] = {
+        { 0.f, -22.f, 30.f, 50.f, 36.f, 100.f }, { 0.f, -18.f, 22.f, 40.f, 33.f, 100.f },
+        { 0.f, -17.f, 26.f, 40.f, 36.f, 100.f }, { 0.f, -16.f, 32.f, 45.f, 33.f, 100.f },
+        { 0.f, -22.f, 40.f, 60.f, 28.f, 100.f }, { 0.f, -18.f, 30.f, 50.f, 28.f, 100.f },
+        { 0.f, -12.f, 38.f, 55.f, 26.f, 100.f } };
+    // Analog Color + Bass Preserve sugeridos: [fuente][VCA, OPTICO, VARI-MU] = on, drive, color, mix, bpOn, bpAmt
+    const float kExtra[kNumProfiles][3][6] = {
+        { { 1.f, 15.f, 40.f, 40.f, 0.f, 50.f }, { 1.f, 12.f, 55.f, 35.f, 0.f, 50.f }, { 1.f, 18.f, 60.f, 40.f, 0.f, 50.f } },   // VOCAL
+        { { 1.f, 20.f, 30.f, 35.f, 0.f, 50.f }, { 0.f, 20.f, 30.f, 35.f, 0.f, 50.f }, { 1.f, 20.f, 40.f, 35.f, 0.f, 50.f } },   // KICK
+        { { 1.f, 25.f, 35.f, 40.f, 0.f, 50.f }, { 0.f, 20.f, 35.f, 35.f, 0.f, 50.f }, { 1.f, 22.f, 40.f, 40.f, 0.f, 50.f } },   // SNARE
+        { { 1.f, 30.f, 45.f, 45.f, 1.f, 40.f }, { 0.f, 20.f, 40.f, 35.f, 1.f, 40.f }, { 1.f, 25.f, 45.f, 40.f, 1.f, 40.f } },   // DRUM BUS
+        { { 1.f, 25.f, 50.f, 40.f, 1.f, 80.f }, { 1.f, 20.f, 50.f, 35.f, 1.f, 80.f }, { 1.f, 22.f, 55.f, 35.f, 1.f, 80.f } },   // 808 / BASS
+        { { 1.f, 20.f, 45.f, 35.f, 0.f, 50.f }, { 0.f, 20.f, 45.f, 35.f, 0.f, 50.f }, { 1.f, 20.f, 50.f, 35.f, 0.f, 50.f } },   // INSTRUMENTAL
+        { { 0.f, 15.f, 40.f, 30.f, 1.f, 40.f }, { 0.f, 15.f, 40.f, 30.f, 1.f, 40.f }, { 1.f, 10.f, 40.f, 30.f, 1.f, 40.f } } }; // MASTER BUS
     constexpr int kNumPresets = 1 + kNumProfiles * 3;
+
+    // Vari-Mu: recuperacion (60 ms .. 6 s) y densidad (ratio maximo 1:1 .. 15:1)
+    inline float muRelMs (float rec) { return 60.f * std::pow (100.f, juce::jlimit (0.f, 1.f, rec)); }
+    inline float muRmax  (float d)   { return 1.f + 14.f * std::pow (juce::jlimit (0.f, 1.f, d), 1.4f); }
 
     inline float lnCosh (float u)
     {
@@ -57,7 +60,7 @@ namespace
         return a + std::log1p (std::exp (-2.f * a)) - 0.69314718f;   // ln(cosh(u)) estable
     }
 
-    // Saturacion con antiderivada (ADAA): casi sin aliasing, sin sobremuestreo ni latencia.
+    // Saturacion con antiderivada (ADAA): reduce mucho el aliasing sin sobremuestreo ni latencia.
     // bias > 0 = asimetria (armonicos pares); bias = 0 = simetrica (armonicos impares)
     inline float adaaSat (float x, float k, float bias, float& pU, float& pLn, float& dcX, float& dcY, float dcR)
     {
@@ -99,6 +102,159 @@ namespace
     }
 }
 
+// ------------------------------------------------------------------ parametros
+juce::AudioProcessorValueTreeState::ParameterLayout DioCompressProcessor::createParameterLayout()
+{
+    juce::AudioProcessorValueTreeState::ParameterLayout l;
+    auto d0 = [] (float v, int) { return juce::String (juce::roundToInt (v)); };
+    auto d1 = [] (float v, int) { return juce::String (v, 1); };
+    auto recText = [] (float v, int)
+    {
+        const float ms = muRelMs (v * 0.01f);
+        return ms < 1000.f ? juce::String (juce::roundToInt (ms)) + " ms" : juce::String (ms / 1000.f, 1) + " s";
+    };
+    auto recParse = [] (const juce::String& s)
+    {
+        const float val = s.getFloatValue();
+        const bool sec = s.containsIgnoreCase ("s") && ! s.containsIgnoreCase ("ms");
+        const float ms = sec ? val * 1000.f : val;
+        return juce::jlimit (0.f, 100.f, 100.f * std::log (juce::jmax (ms, 1.f) / 60.f) / std::log (100.f));
+    };
+    auto densText = [] (float v, int) { return juce::String (muRmax (v * 0.01f), 1) + ":1"; };
+    auto densParse = [] (const juce::String& s)
+    {
+        const float r = s.getFloatValue();
+        return juce::jlimit (0.f, 100.f, 100.f * std::pow (juce::jmax (0.f, (r - 1.f) / 14.f), 1.f / 1.4f));
+    };
+    auto fl = [&] (const char* id, const char* name, NRange range, float def, const char* label,
+                   std::function<juce::String (float, int)> text)
+    {
+        l.add (std::make_unique<FParam> (juce::ParameterID { id, 1 }, name, range, def,
+                                         FAttr().withLabel (label).withStringFromValueFunction (text)));
+    };
+    auto bl = [&] (const char* id, const char* name, bool def)
+    {
+        l.add (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { id, 1 }, name, def));
+    };
+    auto ch = [&] (const char* id, const char* name, juce::StringArray items, int def)
+    {
+        l.add (std::make_unique<juce::AudioParameterChoice> (juce::ParameterID { id, 1 }, name, items, def));
+    };
+
+    // --- globales ---
+    ch ("topology", "Topology", { "VCA", "OPTICO", "VARI-MU" }, 0);
+    bl ("bypass", "Bypass", false);
+    ch ("safety", "Safety", { "OFF", "LIMIT", "CLIP" }, 0);
+    fl ("ceil", "Ceiling", NRange (-12.f, 0.f, 0.1f), -0.3f, "dB", d1);
+
+    // --- VCA ---
+    ch ("vmode", "VCA Mode", { "SMOOTH", "PUNCH", "AGGRESSIVE" }, 0);
+    fl ("vthr", "VCA Threshold", NRange (-60.f, 0.f, 0.1f), -18.f, "dB", d1);
+    fl ("vratio", "VCA Ratio", NRange (1.f, 20.f, 0.1f, 0.5f), 4.f, "", d1);
+    fl ("vattack", "VCA Attack", NRange (0.1f, 100.f, 0.01f, 0.4f), 10.f, "ms", d1);
+    fl ("vrelease", "VCA Release", NRange (20.f, 5000.f, 1.f, 0.35f), 150.f, "ms", d0);
+    fl ("vknee", "VCA Knee", NRange (0.f, 18.f, 0.1f), 6.f, "dB", d1);
+    fl ("vmakeup", "VCA Makeup", NRange (-12.f, 24.f, 0.1f), 0.f, "dB", d1);
+    bl ("vauto", "VCA Auto Makeup", true);
+    fl ("vhpf", "VCA SC HPF", NRange (20.f, 500.f, 1.f, 0.4f), 20.f, "Hz", d0);
+    fl ("vmix", "VCA Mix", NRange (0.f, 100.f, 1.f), 100.f, "%", d0);
+
+    // --- OPTICO ---
+    fl ("opeak", "Opto Peak Reduction", NRange (0.f, 100.f, 0.1f), 40.f, "", d0);
+    fl ("ogain", "Opto Gain", NRange (-12.f, 24.f, 0.1f), 0.f, "dB", d1);
+    ch ("olimit", "Opto Compress/Limit", { "COMPRESS", "LIMIT" }, 0);
+    fl ("oemph", "Opto Emphasis", NRange (0.f, 100.f, 1.f), 0.f, "%", d0);
+    bl ("oauto", "Opto Auto Gain", true);
+    fl ("omix", "Opto Mix", NRange (0.f, 100.f, 1.f), 100.f, "%", d0);
+
+    // --- VARI-MU ---
+    fl ("minput", "Mu Input", NRange (-12.f, 24.f, 0.1f), 0.f, "dB", d1);
+    fl ("mthr", "Mu Threshold", NRange (-48.f, 0.f, 0.1f), -20.f, "dB", d1);
+    l.add (std::make_unique<FParam> (juce::ParameterID { "mrecov", 1 }, "Mu Recovery", NRange (0.f, 100.f, 0.1f), 40.f,
+                                     FAttr().withStringFromValueFunction (recText).withValueFromStringFunction (recParse)));
+    fl ("mbias", "Mu Bias", NRange (0.f, 100.f, 1.f), 50.f, "%", d0);
+    l.add (std::make_unique<FParam> (juce::ParameterID { "mdens", 1 }, "Mu Density", NRange (0.f, 100.f, 0.1f), 50.f,
+                                     FAttr().withStringFromValueFunction (densText).withValueFromStringFunction (densParse)));
+    fl ("moutput", "Mu Output", NRange (-18.f, 18.f, 0.1f), 0.f, "dB", d1);
+    bl ("mauto", "Mu Auto Gain", true);
+    fl ("mmix", "Mu Mix", NRange (0.f, 100.f, 1.f), 100.f, "%", d0);
+
+    // --- ANALOG COLOR y BASS PRESERVE (globales e independientes) ---
+    bl ("analogon", "Analog On", false);
+    fl ("drive", "Analog Drive", NRange (0.f, 100.f, 1.f), 25.f, "%", d0);
+    fl ("color", "Analog Color", NRange (0.f, 100.f, 1.f), 50.f, "%", d0);
+    fl ("amix", "Analog Mix", NRange (0.f, 100.f, 1.f), 50.f, "%", d0);
+    bl ("bpon", "Bass Preserve On", false);
+    fl ("bpamt", "Bass Preserve Amount", NRange (0.f, 100.f, 1.f), 60.f, "%", d0);
+    return l;
+}
+
+DioCompressProcessor::DioCompressProcessor()
+    : AudioProcessor (BusesProperties()
+                        .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
+                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)),
+      apvts (*this, nullptr, "PARAMS", createParameterLayout())
+{
+    auto g = [this] (const char* id) { return apvts.getRawParameterValue (id); };
+    pr.topo = g ("topology");  pr.bypass = g ("bypass");  pr.safety = g ("safety");  pr.ceil = g ("ceil");
+    pr.vmode = g ("vmode");    pr.vthr = g ("vthr");      pr.vratio = g ("vratio");  pr.vatk = g ("vattack");
+    pr.vrel = g ("vrelease");  pr.vknee = g ("vknee");    pr.vmk = g ("vmakeup");    pr.vauto = g ("vauto");
+    pr.vhpf = g ("vhpf");      pr.vmix = g ("vmix");
+    pr.opeak = g ("opeak");    pr.ogain = g ("ogain");    pr.olimit = g ("olimit");  pr.oemph = g ("oemph");
+    pr.oauto = g ("oauto");    pr.omix = g ("omix");
+    pr.minput = g ("minput");  pr.mthr = g ("mthr");      pr.mrec = g ("mrecov");    pr.mbias = g ("mbias");
+    pr.mdens = g ("mdens");    pr.mout = g ("moutput");   pr.mauto = g ("mauto");    pr.mmix = g ("mmix");
+    pr.analog = g ("analogon"); pr.drive = g ("drive");   pr.color = g ("color");    pr.amix = g ("amix");
+    pr.bpon = g ("bpon");      pr.bpamt = g ("bpamt");
+}
+
+// valores actuales segun la topologia activa
+float DioCompressProcessor::currentInputDb() const
+{
+    return juce::roundToInt (pr.topo->load()) == 2 ? pr.minput->load() : 0.f;
+}
+
+float DioCompressProcessor::currentMix() const
+{
+    const int topo = juce::roundToInt (pr.topo->load());
+    return 0.01f * (topo == 0 ? pr.vmix->load() : topo == 1 ? pr.omix->load() : pr.mmix->load());
+}
+
+float DioCompressProcessor::currentPostGainDb() const
+{
+    const int topo = juce::jlimit (0, 2, juce::roundToInt (pr.topo->load()));
+    if (topo == 0)
+    {
+        float mk = pr.vmk->load();
+        if (pr.vauto->load() > 0.5f)
+        {
+            const float r = pr.vratio->load();
+            const float re = (juce::roundToInt (pr.vmode->load()) == 2) ? juce::jmin (30.f, r * 1.35f) : r;
+            mk += -pr.vthr->load() * (1.f - 1.f / juce::jmax (1.f, re)) * 0.5f;
+        }
+        return mk;
+    }
+    if (topo == 1)
+    {
+        float mk = pr.ogain->load();
+        if (pr.oauto->load() > 0.5f)
+        {
+            const float thrO = -0.5f * pr.opeak->load();
+            const float re = pr.olimit->load() > 0.5f ? 10.f : 3.f;
+            mk += -thrO * (1.f - 1.f / re) * 0.5f;
+        }
+        return mk;
+    }
+    float mk = pr.mout->load();
+    if (pr.mauto->load() > 0.5f)
+    {
+        const float aM = 1.f - 1.f / muRmax (pr.mdens->load() * 0.01f);
+        const float tau = 4.f + 20.f * pr.mbias->load() * 0.01f;
+        mk += -pr.minput->load() + 0.5f * aM * 100.f / (10.f + tau);
+    }
+    return mk;
+}
+
 // ------------------------------------------------------------------ presets y perfiles
 int DioCompressProcessor::getNumPrograms() { return kNumPresets; }
 
@@ -107,8 +263,8 @@ const juce::String DioCompressProcessor::getProgramName (int index)
     if (index == 0) return "Init";
     if (index < 0 || index >= kNumPresets) return {};
     const int p = (index - 1) / 3, t = (index - 1) % 3;
-    juce::String topo = (t == 0) ? juce::String ("VCA ") + kModeNames[juce::jlimit (0, 2, juce::roundToInt (kProfiles[p][0][6]))]
-                                 : juce::String (kTopoNames[t]);
+    const juce::String topo = (t == 0) ? juce::String ("VCA ") + kModeNames[juce::jlimit (0, 2, juce::roundToInt (kVcaProf[p][6]))]
+                                       : juce::String (kTopoNames[t]);
     return juce::String (kProfileNames[p]) + " - " + topo;
 }
 
@@ -120,116 +276,171 @@ void DioCompressProcessor::setParam (const char* id, float v)
 
 void DioCompressProcessor::applyInit()
 {
-    setParam ("thr", -18.f);   setParam ("ratio", 4.f);   setParam ("attack", 10.f);  setParam ("release", 150.f);
-    setParam ("knee", 6.f);    setParam ("hpf", 20.f);    setParam ("vcamode", 0.f);  setParam ("analogon", 0.f);
-    setParam ("drive", 25.f);  setParam ("color", 50.f);  setParam ("amix", 50.f);    setParam ("mix", 100.f);
-    setParam ("makeup", 0.f);  setParam ("input", 0.f);   setParam ("out", 0.f);      setParam ("automk", 1.f);
-    setParam ("ceil", -0.3f);  setParam ("safety", 0.f);
+    setParam ("topology", 0.f); setParam ("safety", 0.f);   setParam ("ceil", -0.3f);
+    setParam ("vmode", 0.f);    setParam ("vthr", -18.f);   setParam ("vratio", 4.f);   setParam ("vattack", 10.f);
+    setParam ("vrelease", 150.f); setParam ("vknee", 6.f);  setParam ("vmakeup", 0.f);  setParam ("vauto", 1.f);
+    setParam ("vhpf", 20.f);    setParam ("vmix", 100.f);
+    setParam ("opeak", 40.f);   setParam ("ogain", 0.f);    setParam ("olimit", 0.f);   setParam ("oemph", 0.f);
+    setParam ("oauto", 1.f);    setParam ("omix", 100.f);
+    setParam ("minput", 0.f);   setParam ("mthr", -20.f);   setParam ("mrecov", 40.f);  setParam ("mbias", 50.f);
+    setParam ("mdens", 50.f);   setParam ("moutput", 0.f);  setParam ("mauto", 1.f);    setParam ("mmix", 100.f);
+    setParam ("analogon", 0.f); setParam ("drive", 25.f);   setParam ("color", 50.f);   setParam ("amix", 50.f);
+    setParam ("bpon", 0.f);     setParam ("bpamt", 60.f);
 }
 
 void DioCompressProcessor::applyProfileFor (int profile, int topology)
 {
     profile = juce::jlimit (0, kNumProfiles - 1, profile);
     topology = juce::jlimit (0, 2, topology);
+    if (topology == 0)
+    {
+        for (int i = 0; i < 8; ++i) setParam (kVcaIds[i], kVcaProf[profile][i]);
+        setParam ("vmakeup", 0.f);  setParam ("vauto", 1.f);
+    }
+    else if (topology == 1)
+    {
+        for (int i = 0; i < 4; ++i) setParam (kOptIds[i], kOptProf[profile][i]);
+        setParam ("ogain", 0.f);  setParam ("oauto", 1.f);
+    }
+    else
+    {
+        for (int i = 0; i < 6; ++i) setParam (kMuIds[i], kMuProf[profile][i]);
+        setParam ("moutput", 0.f);  setParam ("mauto", 1.f);
+    }
+    for (int i = 0; i < 6; ++i) setParam (kExtraIds[i], kExtra[profile][topology][i]);
     currentProfile = profile;
-    for (int i = 0; i < kNumProfileValues; ++i)
-        setParam (kProfileIds[i], kProfiles[profile][topology][i]);
-    setParam ("makeup", 0.f);
-    setParam ("automk", 1.f);
 }
 
 void DioCompressProcessor::applyProfile (int profile)
 {
-    applyProfileFor (profile, juce::roundToInt (pTopo->load()));
+    applyProfileFor (profile, juce::roundToInt (pr.topo->load()));
 }
 
-void DioCompressProcessor::setCurrentProgram (int index)
+void DioCompressProcessor::finishPresetLoad (const juce::String& name, bool user, int factoryIndex)
+{
+    currentPresetName = name;
+    currentPresetUser = user;
+    if (! user) currentFactory = factoryIndex;
+    currentProfile = -1;
+}
+
+void DioCompressProcessor::loadFactoryPreset (int index)
 {
     index = juce::jlimit (0, kNumPresets - 1, index);
-    currentPreset = index;
-    if (index == 0) { setParam ("topology", 0.f); applyInit(); currentProfile = -1; return; }
+    if (index == 0)
+    {
+        applyInit();
+        finishPresetLoad ("Init", false, 0);
+        return;
+    }
     const int p = (index - 1) / 3, t = (index - 1) % 3;
     setParam ("topology", (float) t);
     applyProfileFor (p, t);
+    finishPresetLoad (getProgramName (index), false, index);
+    currentProfile = p;
 }
 
-// ------------------------------------------------------------------ parametros
-juce::AudioProcessorValueTreeState::ParameterLayout DioCompressProcessor::createParameterLayout()
+// ------------------------------------------------------------------ presets de usuario (disco)
+juce::File DioCompressProcessor::getUserPresetDir()
 {
-    juce::AudioProcessorValueTreeState::ParameterLayout l;
-    auto d0 = [] (float v, int) { return juce::String (juce::roundToInt (v)); };
-    auto d1 = [] (float v, int) { return juce::String (v, 1); };
-
-    l.add (std::make_unique<juce::AudioParameterChoice> (juce::ParameterID { "topology", 1 }, "Topology",
-                                                         juce::StringArray { "VCA", "OPTICO", "VARI-MU" }, 0));
-    l.add (std::make_unique<juce::AudioParameterChoice> (juce::ParameterID { "vcamode", 1 }, "VCA Mode",
-                                                         juce::StringArray { "SMOOTH", "PUNCH", "AGGRESSIVE" }, 0));
-    l.add (std::make_unique<FParam> (juce::ParameterID { "input", 1 },   "Input",     NRange (-24.f, 24.f, 0.1f), 0.f, FAttr().withLabel ("dB").withStringFromValueFunction (d1)));
-    l.add (std::make_unique<FParam> (juce::ParameterID { "thr", 1 },     "Threshold", NRange (-60.f, 0.f, 0.1f), -18.f, FAttr().withLabel ("dB").withStringFromValueFunction (d1)));
-    l.add (std::make_unique<FParam> (juce::ParameterID { "ratio", 1 },   "Ratio",     NRange (1.f, 20.f, 0.1f, 0.5f), 4.f, FAttr().withStringFromValueFunction (d1)));
-    l.add (std::make_unique<FParam> (juce::ParameterID { "attack", 1 },  "Attack",    NRange (0.1f, 100.f, 0.01f, 0.4f), 10.f, FAttr().withLabel ("ms").withStringFromValueFunction (d1)));
-    l.add (std::make_unique<FParam> (juce::ParameterID { "release", 1 }, "Release",   NRange (20.f, 5000.f, 1.f, 0.35f), 150.f, FAttr().withLabel ("ms").withStringFromValueFunction (d0)));
-    l.add (std::make_unique<FParam> (juce::ParameterID { "knee", 1 },    "Knee",      NRange (0.f, 18.f, 0.1f), 6.f, FAttr().withLabel ("dB").withStringFromValueFunction (d1)));
-    l.add (std::make_unique<FParam> (juce::ParameterID { "makeup", 1 },  "Makeup",    NRange (-12.f, 24.f, 0.1f), 0.f, FAttr().withLabel ("dB").withStringFromValueFunction (d1)));
-    l.add (std::make_unique<FParam> (juce::ParameterID { "out", 1 },     "Output",    NRange (-18.f, 18.f, 0.1f), 0.f, FAttr().withLabel ("dB").withStringFromValueFunction (d1)));
-    l.add (std::make_unique<FParam> (juce::ParameterID { "mix", 1 },     "Dry/Wet",   NRange (0.f, 100.f, 1.f), 100.f, FAttr().withLabel ("%").withStringFromValueFunction (d0)));
-    l.add (std::make_unique<FParam> (juce::ParameterID { "hpf", 1 },     "SC HPF",    NRange (20.f, 500.f, 1.f, 0.4f), 20.f, FAttr().withLabel ("Hz").withStringFromValueFunction (d0)));
-    l.add (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { "automk", 1 },  "Auto Makeup", true));
-    l.add (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { "bypass", 1 },  "Bypass", false));
-
-    l.add (std::make_unique<juce::AudioParameterChoice> (juce::ParameterID { "safety", 1 }, "Safety",
-                                                         juce::StringArray { "OFF", "LIMIT", "CLIP" }, 0));
-    l.add (std::make_unique<FParam> (juce::ParameterID { "ceil", 1 },    "Ceiling",   NRange (-12.f, 0.f, 0.1f), -0.3f, FAttr().withLabel ("dB").withStringFromValueFunction (d1)));
-
-    l.add (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { "analogon", 1 }, "Analog On", false));
-    l.add (std::make_unique<FParam> (juce::ParameterID { "drive", 1 },   "Analog Drive", NRange (0.f, 100.f, 1.f), 25.f, FAttr().withLabel ("%").withStringFromValueFunction (d0)));
-    l.add (std::make_unique<FParam> (juce::ParameterID { "color", 1 },   "Analog Color", NRange (0.f, 100.f, 1.f), 50.f, FAttr().withLabel ("%").withStringFromValueFunction (d0)));
-    l.add (std::make_unique<FParam> (juce::ParameterID { "amix", 1 },    "Analog Mix",   NRange (0.f, 100.f, 1.f), 50.f, FAttr().withLabel ("%").withStringFromValueFunction (d0)));
-    return l;
+    return juce::File::getSpecialLocation (juce::File::userApplicationDataDirectory)
+               .getChildFile ("DioOnTheBeat").getChildFile ("DioCompress").getChildFile ("Presets");
 }
 
-DioCompressProcessor::DioCompressProcessor()
-    : AudioProcessor (BusesProperties()
-                        .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
-                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)),
-      apvts (*this, nullptr, "PARAMS", createParameterLayout())
+static juce::String legalPresetName (const juce::String& raw)
 {
-    pTopo = apvts.getRawParameterValue ("topology");   pVmode = apvts.getRawParameterValue ("vcamode");
-    pIn = apvts.getRawParameterValue ("input");        pThr = apvts.getRawParameterValue ("thr");
-    pRatio = apvts.getRawParameterValue ("ratio");     pAtk = apvts.getRawParameterValue ("attack");
-    pRel = apvts.getRawParameterValue ("release");     pKnee = apvts.getRawParameterValue ("knee");
-    pMakeup = apvts.getRawParameterValue ("makeup");   pMix = apvts.getRawParameterValue ("mix");
-    pHpf = apvts.getRawParameterValue ("hpf");         pOut = apvts.getRawParameterValue ("out");
-    pCeil = apvts.getRawParameterValue ("ceil");       pAutoMk = apvts.getRawParameterValue ("automk");
-    pBypass = apvts.getRawParameterValue ("bypass");   pSafety = apvts.getRawParameterValue ("safety");
-    pAnalog = apvts.getRawParameterValue ("analogon"); pDrive = apvts.getRawParameterValue ("drive");
-    pColor = apvts.getRawParameterValue ("color");     pAmix = apvts.getRawParameterValue ("amix");
+    return juce::File::createLegalFileName (raw.trim()).substring (0, 40).trim();
 }
 
-float DioCompressProcessor::currentMakeupDb() const
+juce::StringArray DioCompressProcessor::getUserPresetNames() const
 {
-    float mk = pMakeup->load();
-    if (pAutoMk->load() > 0.5f)
+    juce::StringArray names;
+    const auto dir = getUserPresetDir();
+    if (dir.isDirectory())
     {
-        const int topo = juce::jlimit (0, 2, juce::roundToInt (pTopo->load()));
-        const float r = pRatio->load();
-        float re = r;                                                     // ratio efectivo de cada topologia
-        if (topo == 0)      re = (juce::roundToInt (pVmode->load()) == 2) ? juce::jmin (30.f, r * 1.35f) : r;
-        else if (topo == 1) re = 1.f + 0.55f * (r - 1.f);
-        else                re = 1.f + 0.60f * (r - 1.f);
-        mk += -pThr->load() * (1.f - 1.f / juce::jmax (1.f, re)) * 0.5f;  // compensacion aproximada
+        juce::Array<juce::File> files;
+        dir.findChildFiles (files, juce::File::findFiles, false, "*.dioPreset");
+        for (auto& f : files) names.add (f.getFileNameWithoutExtension());
+        names.sortNatural();
     }
-    return mk;
+    return names;
 }
 
+bool DioCompressProcessor::userPresetExists (const juce::String& name) const
+{
+    const auto legal = legalPresetName (name);
+    return legal.isNotEmpty() && getUserPresetDir().getChildFile (legal + ".dioPreset").existsAsFile();
+}
+
+bool DioCompressProcessor::saveUserPreset (const juce::String& name, bool overwrite)
+{
+    const auto legal = legalPresetName (name);
+    if (legal.isEmpty()) return false;
+    auto dir = getUserPresetDir();
+    if (! dir.isDirectory() && ! dir.createDirectory().wasOk()) return false;
+    auto file = dir.getChildFile (legal + ".dioPreset");
+    if (file.existsAsFile() && ! overwrite) return false;
+
+    auto xml = apvts.copyState().createXml();       // todos los parametros: las tres topologias, Analog Color, Bass Preserve...
+    if (xml == nullptr) return false;
+    xml->setAttribute ("presetName", legal);
+    xml->setAttribute ("dioPresetVersion", 1);
+    if (! xml->writeTo (file)) return false;
+    finishPresetLoad (legal, true, 0);
+    return true;
+}
+
+bool DioCompressProcessor::loadUserPreset (const juce::String& name)
+{
+    const auto legal = legalPresetName (name);
+    auto file = getUserPresetDir().getChildFile (legal + ".dioPreset");
+    if (! file.existsAsFile()) return false;
+    auto xml = juce::XmlDocument::parse (file);
+    if (xml == nullptr || ! xml->hasTagName (apvts.state.getType())) return false;
+
+    const float bypassNow = pr.bypass->load();      // un preset no cambia el bypass de la instancia
+    apvts.replaceState (juce::ValueTree::fromXml (*xml));
+    setParam ("bypass", bypassNow);
+    finishPresetLoad (legal, true, 0);
+    return true;
+}
+
+bool DioCompressProcessor::deleteUserPreset (const juce::String& name)
+{
+    const auto legal = legalPresetName (name);
+    auto file = getUserPresetDir().getChildFile (legal + ".dioPreset");
+    if (! file.existsAsFile() || ! file.deleteFile()) return false;
+    if (currentPresetUser && currentPresetName == legal)
+    {
+        currentPresetName = "Custom";
+        currentPresetUser = false;
+    }
+    return true;
+}
+
+bool DioCompressProcessor::renameUserPreset (const juce::String& oldName, const juce::String& newName)
+{
+    const auto o = legalPresetName (oldName), n = legalPresetName (newName);
+    if (o.isEmpty() || n.isEmpty()) return false;
+    if (o == n) return true;
+    auto dir = getUserPresetDir();
+    auto from = dir.getChildFile (o + ".dioPreset"), to = dir.getChildFile (n + ".dioPreset");
+    if (! from.existsAsFile() || to.existsAsFile()) return false;
+    if (! from.moveFileTo (to)) return false;
+    if (currentPresetUser && currentPresetName == o) currentPresetName = n;
+    return true;
+}
+
+// ------------------------------------------------------------------ audio
 void DioCompressProcessor::clearState()
 {
     for (int c = 0; c < 2; ++c)
     {
-        hpState[c] = aLp1[c] = aLp2[c] = 0.f;
+        hpV[c] = hpD[c] = emL[c] = lpB1[c] = lpB2[c] = 0.f;
+        aLp1[c] = aLp2[c] = 0.f;
         for (int b = 0; b < 2; ++b) aPU[c][b] = aPLn[c][b] = aDcX[c][b] = aDcY[c][b] = 0.f;
     }
-    ms20 = ms40 = 0.f;
+    msV = msO = msM = grBp = 0.f;
     vF = vS = oF = oS = oMem = mF = mS = 0.f;
     aMsIn = aMsOut = 0.f;
     tgBuf.assign ((size_t) limLen, 1.f);
@@ -261,19 +472,20 @@ void DioCompressProcessor::prepareToPlay (double sampleRate, int)
         s.reset (fs, sec);
         s.setCurrentAndTargetValue (v);
     };
-    const int topo = juce::jlimit (0, 2, juce::roundToInt (pTopo->load()));
-    init (smIn, 0.03, juce::Decibels::decibelsToGain (pIn->load()));
-    init (smMix, 0.03, pMix->load() * 0.01f);
-    init (smOut, 0.03, juce::Decibels::decibelsToGain (pOut->load()));
-    init (smMakeup, 0.03, currentMakeupDb());
-    init (smDrive, 0.03, pDrive->load() * 0.01f);
-    init (smColor, 0.03, pColor->load() * 0.01f);
-    init (smAmix, 0.03, pAmix->load() * 0.01f);
-    init (smAnalog, 0.03, pAnalog->load() > 0.5f ? 1.f : 0.f);
-    init (smBypass, 0.02, pBypass->load() > 0.5f ? 1.f : 0.f);
+    const int topo = juce::jlimit (0, 2, juce::roundToInt (pr.topo->load()));
+    init (smIn, 0.03, juce::Decibels::decibelsToGain (currentInputDb()));
+    init (smMix, 0.03, currentMix());
+    init (smMakeup, 0.03, currentPostGainDb());
+    init (smDrive, 0.03, pr.drive->load() * 0.01f);
+    init (smColor, 0.03, pr.color->load() * 0.01f);
+    init (smAmix, 0.03, pr.amix->load() * 0.01f);
+    init (smAnalog, 0.03, pr.analog->load() > 0.5f ? 1.f : 0.f);
+    init (smBypass, 0.02, pr.bypass->load() > 0.5f ? 1.f : 0.f);
     init (smWV, 0.04, topo == 0 ? 1.f : 0.f);
     init (smWO, 0.04, topo == 1 ? 1.f : 0.f);
     init (smWM, 0.04, topo == 2 ? 1.f : 0.f);
+    init (smBpOn, 0.03, pr.bpon->load() > 0.5f ? 1.f : 0.f);
+    init (smBpAmt, 0.03, pr.bpamt->load() * 0.01f);
 }
 
 bool DioCompressProcessor::isBusesLayoutSupported (const BusesLayout& l) const
@@ -294,47 +506,63 @@ void DioCompressProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
     if (numCh == 0 || n == 0) return;
 
     // --- parametros ---
-    const int topo  = juce::jlimit (0, 2, juce::roundToInt (pTopo->load()));
-    const int vmode = juce::jlimit (0, 2, juce::roundToInt (pVmode->load()));
-    const float thr = pThr->load(), ratio = pRatio->load(), knee = pKnee->load();
-    const float atkMs = pAtk->load(), relMs = pRel->load();
-    const int safety = juce::roundToInt (pSafety->load());     // 0 OFF, 1 LIMIT, 2 CLIP
-    const float ceilLin = juce::Decibels::decibelsToGain (pCeil->load());
+    const int topo  = juce::jlimit (0, 2, juce::roundToInt (pr.topo->load()));
+    const int vmode = juce::jlimit (0, 2, juce::roundToInt (pr.vmode->load()));
+    const bool bpOnT = pr.bpon->load() > 0.5f;
+    const float bpAmtT = pr.bpamt->load() * 0.01f;
+    const int safety = juce::roundToInt (pr.safety->load());     // 0 OFF, 1 LIMIT, 2 CLIP
+    const float ceilLin = juce::Decibels::decibelsToGain (pr.ceil->load());
 
-    smIn.setTargetValue (juce::Decibels::decibelsToGain (pIn->load()));
-    smMix.setTargetValue (pMix->load() * 0.01f);
-    smOut.setTargetValue (juce::Decibels::decibelsToGain (pOut->load()));
-    smMakeup.setTargetValue (currentMakeupDb());
-    smDrive.setTargetValue (pDrive->load() * 0.01f);
-    smColor.setTargetValue (pColor->load() * 0.01f);
-    smAmix.setTargetValue (pAmix->load() * 0.01f);
-    smAnalog.setTargetValue (pAnalog->load() > 0.5f ? 1.f : 0.f);
-    smBypass.setTargetValue (pBypass->load() > 0.5f ? 1.f : 0.f);
+    smIn.setTargetValue (juce::Decibels::decibelsToGain (currentInputDb()));
+    smMix.setTargetValue (currentMix());
+    smMakeup.setTargetValue (currentPostGainDb());
+    smDrive.setTargetValue (pr.drive->load() * 0.01f);
+    smColor.setTargetValue (pr.color->load() * 0.01f);
+    smAmix.setTargetValue (pr.amix->load() * 0.01f);
+    smAnalog.setTargetValue (pr.analog->load() > 0.5f ? 1.f : 0.f);
+    smBypass.setTargetValue (pr.bypass->load() > 0.5f ? 1.f : 0.f);
     smWV.setTargetValue (topo == 0 ? 1.f : 0.f);
     smWO.setTargetValue (topo == 1 ? 1.f : 0.f);
     smWM.setTargetValue (topo == 2 ? 1.f : 0.f);
+    smBpOn.setTargetValue (bpOnT ? 1.f : 0.f);
+    smBpAmt.setTargetValue (bpAmtT);
 
     auto coefMs = [this] (float ms) { return std::exp (-1.f / (juce::jmax (0.01f, ms) * 0.001f * (float) fs)); };
-    const float hpA = 1.f - std::exp (-juce::MathConstants<float>::twoPi * pHpf->load() / (float) fs);
+    const float twoPi = juce::MathConstants<float>::twoPi;
+    const float hpVA = 1.f - std::exp (-twoPi * pr.vhpf->load() / (float) fs);     // HPF del detector VCA
+    const float hpDA = 1.f - std::exp (-twoPi * 20.f / (float) fs);                // quita DC en los detectores optico / vari-mu
+    const float emA  = 1.f - std::exp (-twoPi * 1500.f / (float) fs);              // EMPHASIS (solo detector)
+    const float bpA  = 1.f - std::exp (-twoPi * 110.f * 1.554f / (float) fs);      // banda grave de BASS PRESERVE (~110 Hz)
     const float c20 = 1.f - coefMs (20.f), c40 = 1.f - coefMs (40.f);
 
-    // VCA: tiempos segun la personalidad
-    const float vAtk0 = coefMs (juce::jmax (atkMs, 6.f));                        // SMOOTH: ataque minimo 6 ms (cuerpo)
-    const float vRel0F = coefMs (relMs * 0.4f), vRel0S = coefMs (relMs * 1.6f);
-    const float vRel1 = coefMs (relMs * 0.7f);                                   // PUNCH
-    const float vAtk2 = coefMs (juce::jmax (0.1f, atkMs * 0.4f));                // AGGRESSIVE
-    const float vRel2F = coefMs (relMs * 0.3f), vRel2S = coefMs (relMs * 1.2f);
-    // OPTICO: celda con memoria
-    const float ratioO = 1.f + 0.55f * (ratio - 1.f);
-    const float oRelF = coefMs (60.f), oRelS = coefMs (juce::jlimit (400.f, 8000.f, relMs * 2.5f));
+    // VCA
+    const float thrV = pr.vthr->load(), ratioVu = pr.vratio->load(), kneeVu = pr.vknee->load(), atkV = pr.vatk->load();
+    const float relV = bpOnT ? juce::jmax (pr.vrel->load(), 120.f) : pr.vrel->load();   // BASS PRESERVE: recuperacion musical (min 120 ms)
+    const float vAtk0 = coefMs (juce::jmax (atkV, 6.f));                         // SMOOTH: ataque minimo 6 ms (cuerpo)
+    const float vRel0F = coefMs (relV * 0.4f), vRel0S = coefMs (relV * 1.6f);
+    const float vRel1 = coefMs (relV * 0.7f);                                    // PUNCH
+    const float vAtk2 = coefMs (juce::jmax (0.1f, atkV * 0.4f));                 // AGGRESSIVE
+    const float vRel2F = coefMs (relV * 0.3f), vRel2S = coefMs (relV * 1.2f);
+    // OPTICO: celda con memoria, sin attack/release convencionales
+    const bool limitO = pr.olimit->load() > 0.5f;
+    const float thrO = -0.5f * pr.opeak->load();                                 // PEAK REDUCTION: 0 -> sin compresion, 100 -> -50 dB
+    const float ratioO = limitO ? 10.f : 3.f, kneeO = limitO ? 6.f : 12.f;
+    const float oAtkBase = limitO ? 6.f : 10.f;
+    const float oRelF = coefMs (60.f), oRelS = coefMs (limitO ? 800.f : 1200.f);
     const float memAtk = 1.f - coefMs (1500.f), memRel = 1.f - coefMs (6000.f);
+    const float emphAmt = pr.oemph->load() * 0.01f;
     // VARI-MU: ratio progresivo
-    const float aM = 1.f - 1.f / juce::jmax (1.f, ratio);
+    const float thrM = pr.mthr->load();
+    const float aM = 1.f - 1.f / muRmax (pr.mdens->load() * 0.01f);              // DENSITY: ratio maximo
+    const float tauM = 4.f + 20.f * pr.mbias->load() * 0.01f;                    // BIAS: donde empieza a subir el ratio
+    const float relBaseM = muRelMs (pr.mrec->load() * 0.01f);                    // RECOVERY
+    // BASS PRESERVE
+    const float bpC = coefMs (2.f + 8.f * bpAmtT);
 
     // ANALOG COLOR
-    const float subA = 1.f - std::exp (-juce::MathConstants<float>::twoPi * 70.f * 1.554f / (float) fs);
+    const float subA = 1.f - std::exp (-twoPi * 70.f * 1.554f / (float) fs);
     const float subKeep = 0.3f;                                                  // el subgrave recibe solo 30% de la saturacion
-    const float dcR = 1.f - juce::MathConstants<float>::twoPi * 8.f / (float) fs;
+    const float dcR = 1.f - twoPi * 8.f / (float) fs;
     const float chC = 1.f - coefMs (30.f);
 
     const float limRelC = coefMs (100.f);
@@ -344,36 +572,54 @@ void DioCompressProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
 
     for (int i = 0; i < n; ++i)
     {
-        // entrada segura (evita NaN/Inf) y ganancia de entrada
-        float raw[2] { 0.f, 0.f }, x[2] { 0.f, 0.f };
+        // entrada segura (evita NaN/Inf) y ganancia de entrada (solo Vari-Mu la usa)
+        float raw[2] { 0.f, 0.f }, xin[2] { 0.f, 0.f };
         const float inG = smIn.getNextValue();
         for (int c = 0; c < numCh; ++c)
         {
             const float v = data[c][i];
             raw[c] = std::isfinite (v) ? v : 0.f;
-            x[c] = raw[c] * inG;
-            inPk = juce::jmax (inPk, std::abs (x[c]));
+            xin[c] = raw[c] * inG;
+            inPk = juce::jmax (inPk, std::abs (xin[c]));
         }
 
-        // --- detector comun (sidechain con HPF, enlazado estereo) ---
-        float sc = 0.f;
+        // --- BASS PRESERVE: el DETECTOR ve menos graves; la senal de audio no se filtra ---
+        const float onE = smBpOn.getNextValue(), amtE = smBpAmt.getNextValue();
+        const float bpEff = onE * amtE;
+        const float bpScale = 1.f - 0.75f * bpEff;
+        float lowX[2] { 0.f, 0.f };
+        float scV = 0.f, scO = 0.f, scM = 0.f;
         for (int c = 0; c < numCh; ++c)
         {
-            hpState[c] += hpA * (x[c] - hpState[c]);
-            sc = juce::jmax (sc, std::abs (x[c] - hpState[c]));
+            lpB1[c] += bpA * (xin[c] - lpB1[c]);
+            lpB2[c] += bpA * (lpB1[c] - lpB2[c]);
+            lowX[c] = lpB2[c];
+            const float d = xin[c] - lowX[c] * (1.f - bpScale);          // detector: graves reducidos hasta 75%
+            hpV[c] += hpVA * (d - hpV[c]);                               // VCA: SC HPF propio
+            scV = juce::jmax (scV, std::abs (d - hpV[c]));
+            hpD[c] += hpDA * (d - hpD[c]);
+            const float o = d - hpD[c];
+            emL[c] += emA * (o - emL[c]);
+            const float oe = o + emphAmt * 3.f * (o - emL[c]);           // OPTICO: EMPHASIS realza agudos en el detector (hasta +12 dB)
+            scO = juce::jmax (scO, std::abs (oe));
+            scM = juce::jmax (scM, std::abs (o));
         }
-        ms20 += c20 * (sc * sc - ms20);
-        ms40 += c40 * (sc * sc - ms40);
-        const float pkDb    = juce::Decibels::gainToDecibels (sc, -100.f);
-        const float rms20Db = juce::Decibels::gainToDecibels (std::sqrt (juce::jmax (0.f, ms20)), -100.f);
-        const float rms40Db = juce::Decibels::gainToDecibels (std::sqrt (juce::jmax (0.f, ms40)), -100.f);
+        msV += c20 * (scV * scV - msV);
+        msO += c20 * (scO * scO - msO);
+        msM += c40 * (scM * scM - msM);
+        const float pkVDb   = juce::Decibels::gainToDecibels (scV, -100.f);
+        const float rmsVDb  = juce::Decibels::gainToDecibels (std::sqrt (juce::jmax (0.f, msV)), -100.f);
+        const float rmsODb  = juce::Decibels::gainToDecibels (std::sqrt (juce::jmax (0.f, msO)), -100.f);
+        const float rmsMDb  = juce::Decibels::gainToDecibels (std::sqrt (juce::jmax (0.f, msM)), -100.f);
 
-        // === VCA ===
+        // === VCA: detector, tiempos y curva segun la personalidad ===
         float lvlV, ratioV, kneeV;
-        if (vmode == 0)      { lvlV = rms20Db; ratioV = ratio; kneeV = knee + 4.f; }                            // SMOOTH: RMS
-        else if (vmode == 1) { lvlV = pkDb;    ratioV = ratio; kneeV = knee; }                                  // PUNCH: picos
-        else                 { lvlV = juce::jmax (pkDb, rms20Db + 3.f); ratioV = juce::jmin (30.f, ratio * 1.35f); kneeV = knee * 0.5f; }
-        const float tgtV = gainCurve (lvlV - thr, ratioV, kneeV);
+        if (vmode == 0)      { lvlV = rmsVDb; ratioV = ratioVu; kneeV = kneeVu + 4.f; }                       // SMOOTH: RMS
+        else if (vmode == 1) { lvlV = pkVDb;  ratioV = ratioVu; kneeV = kneeVu; }                             // PUNCH: picos
+        else                 { lvlV = juce::jmax (pkVDb, rmsVDb + 3.f); ratioV = juce::jmin (30.f, ratioVu * 1.35f); kneeV = kneeVu * 0.5f; }
+        if (vmode >= 1 && bpEff > 0.0001f)                                                                   // BASS PRESERVE: picos y RMS combinados
+            lvlV += 0.8f * bpEff * ((rmsVDb + 3.f) - lvlV);
+        const float tgtV = gainCurve (lvlV - thrV, ratioV, kneeV);
         float grV;
         if (vmode == 0)
         {
@@ -384,7 +630,7 @@ void DioCompressProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
         {
             // ataque adaptativo: deja pasar el transitorio si la reduccion es pequena, lo atrapa si es grande
             const float t = juce::jlimit (0.f, 1.f, (tgtV - 3.f) / 5.f);
-            follow (vF, tgtV, coefMs (atkMs * (1.6f - 1.1f * t)), vRel1);
+            follow (vF, tgtV, coefMs (atkV * (1.6f - 1.1f * t)), vRel1);
             vS = vF;
             grV = vF;
         }
@@ -394,39 +640,46 @@ void DioCompressProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
             grV = 0.6f * vF + 0.4f * vS;
         }
 
-        // === OPTICO: tiempos que dependen del programa + memoria de la celda ===
-        const float tgtO = gainCurve (rms20Db - thr, ratioO, 12.f);
+        // === OPTICO: celda con tiempos que dependen del programa y memoria de la compresion ===
+        const float tgtO = gainCurve (rmsODb - thrO, ratioO, kneeO);
         const float wSprev = 0.25f + 0.65f * oMem;
         const float prevO = (1.f - wSprev) * oF + wSprev * oS;
         const float errO = juce::jmax (0.f, tgtO - oF);
-        const float caO = coefMs (juce::jmax (1.5f, 10.f / (1.f + 0.1f * errO)));   // mas rapido cuanto mas empuja
+        const float caO = coefMs (juce::jmax (1.5f, oAtkBase / (1.f + 0.1f * errO)));   // mas rapido cuanto mas empuja la senal
         follow (oF, tgtO, caO, oRelF);
         follow (oS, tgtO, caO, oRelS);
         const float mT = juce::jlimit (0.f, 1.f, prevO / 12.f);
         oMem += (mT - oMem) * (mT > oMem ? memAtk : memRel);
-        const float wS = 0.25f + 0.65f * oMem;                                        // mas compresion sostenida = cola mas larga
+        const float wS = 0.25f + 0.65f * oMem;                                            // compresion sostenida = cola de recuperacion larga
         const float grO = (1.f - wS) * oF + wS * oS;
 
         // === VARI-MU: ratio progresivo segun el nivel ===
-        const float oM = juce::jmax (0.f, rms40Db - thr);
-        const float tgtM = aM * oM * oM / (oM + 10.f);                                // ratio sube con la reduccion
+        const float oM = juce::jmax (0.f, rmsMDb - thrM);
+        const float tgtM = aM * oM * oM / (oM + tauM);                                    // el ratio sube a medida que sube la reduccion
         const float grMprev = 0.55f * mF + 0.45f * mS;
-        const float caM = coefMs (juce::jmax (0.3f, atkMs / (1.f + 0.05f * tgtM)));
-        const float rsc = 1.f + grMprev / 15.f;                                       // release mas lento cuanto mas profundo
-        follow (mF, tgtM, caM, coefMs (relMs * 0.35f * rsc));
-        follow (mS, tgtM, caM, coefMs (relMs * 2.0f * rsc));
+        const float caM = coefMs (juce::jmax (0.5f, 8.f / (1.f + 0.05f * tgtM)));
+        const float rsc = 1.f + grMprev / 15.f;                                           // recuperacion mas lenta cuanto mas profunda
+        follow (mF, tgtM, caM, coefMs (relBaseM * 0.35f * rsc));
+        follow (mS, tgtM, caM, coefMs (relBaseM * 2.0f * rsc));
         const float grM = 0.55f * mF + 0.45f * mS;
 
         // mezcla suave entre topologias (sin clicks)
         const float wV = smWV.getNextValue(), wO = smWO.getNextValue(), wM = smWM.getNextValue();
         const float gr = wV * grV + wO * grO + wM * grM;
-        maxGr = juce::jmax (maxGr, gr);
+        grBp += (1.f - bpC) * (gr - grBp);                                                // BASS PRESERVE: reduccion sin modulacion a ritmo de audio
+        const float grOut = gr + onE * (grBp - gr);
+        maxGr = juce::jmax (maxGr, grOut);
 
-        const float g = juce::Decibels::decibelsToGain (-gr + smMakeup.getNextValue());
+        const float gGR = juce::Decibels::decibelsToGain (-grOut);
+        const float mkLin = juce::Decibels::decibelsToGain (smMakeup.getNextValue());
         const float mix = smMix.getNextValue();
         float y[2] { 0.f, 0.f };
         for (int c = 0; c < numCh; ++c)
-            y[c] = x[c] * (1.f - mix) + x[c] * g * mix;                               // Dry/Wet (paralelo)
+        {
+            // Dry/Wet paralelo alineado. BASS PRESERVE devuelve parte del grave original (misma ganancia de makeup)
+            y[c] = raw[c] * (1.f - mix) + xin[c] * gGR * mkLin * mix
+                 + 0.6f * bpEff * lowX[c] * mix * mkLin * (1.f - gGR);
+        }
 
         // === ANALOG COLOR (modulo independiente, despues de la compresion) ===
         {
@@ -456,14 +709,8 @@ void DioCompressProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
                 y[c] += aAmt * (wet[c] * comp - y[c]);
         }
 
-        // --- volumen de salida ---
-        const float outG = smOut.getNextValue();
         float peak = 0.f;
-        for (int c = 0; c < numCh; ++c)
-        {
-            y[c] *= outG;
-            peak = juce::jmax (peak, std::abs (y[c]));
-        }
+        for (int c = 0; c < numCh; ++c) peak = juce::jmax (peak, std::abs (y[c]));
 
         // --- SAFETY modo LIMIT: limitador con lookahead (min + promedio) ---
         const float tg = (safety == 1 && peak > ceilLin) ? ceilLin / peak : 1.f;
@@ -511,11 +758,14 @@ void DioCompressProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
 
 juce::AudioProcessorEditor* DioCompressProcessor::createEditor() { return new DioCompressEditor (*this); }
 
+// Estado de cada instancia (se guarda dentro del proyecto del DAW)
 void DioCompressProcessor::getStateInformation (juce::MemoryBlock& dest)
 {
     if (auto xml = apvts.copyState().createXml())
     {
-        xml->setAttribute ("uiWidth", savedEditorWidth);
+        xml->setAttribute ("currentPreset", currentPresetName);
+        xml->setAttribute ("currentPresetUser", currentPresetUser);
+        xml->setAttribute ("currentFactory", currentFactory);
         xml->setAttribute ("profile", currentProfile);
         copyXmlToBinary (*xml, dest);
     }
@@ -526,7 +776,9 @@ void DioCompressProcessor::setStateInformation (const void* data, int size)
     if (auto xml = getXmlFromBinary (data, size))
         if (xml->hasTagName (apvts.state.getType()))
         {
-            savedEditorWidth = juce::jlimit (440, 1650, xml->getIntAttribute ("uiWidth", 770));
+            currentPresetName = xml->getStringAttribute ("currentPreset", "Init");
+            currentPresetUser = xml->getBoolAttribute ("currentPresetUser", false);
+            currentFactory = juce::jlimit (0, kNumPresets - 1, xml->getIntAttribute ("currentFactory", 0));
             currentProfile = xml->getIntAttribute ("profile", -1);
             apvts.replaceState (juce::ValueTree::fromXml (*xml));
         }
